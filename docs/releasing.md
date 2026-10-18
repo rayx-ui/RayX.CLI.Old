@@ -18,15 +18,11 @@ A release is a version tag `vX.Y.Z` on `main`. Two tools split the work:
    | --- | --- |
    | `fix:`, `perf:` | patch (`1.0.0` → `1.0.1`) |
    | `feat:` | minor (`1.0.0` → `1.1.0`) |
-   | `feat!:`, `fix!:` or `perf!:` (a `BREAKING CHANGE:` footer on those types) | major (`1.0.0` → `2.0.0`) |
    | `docs:`, `test:`, `ci:`, `build:`, `chore:`, `refactor:` | none on their own (`release_commits` in `release-plz.toml` lists `feat`, `fix` and `perf`); they appear in the changelog of the next release |
 
-   Write a breaking change as `feat!`, `fix!` or `perf!`: a breaking `refactor!` or `docs!` commit
-   would not start a release by itself.
-
-   A breaking change that touches the `rayx app` grammar, its flags, the artifact layout or the
-   `[package.metadata.rayx]` contract needs the matching RayX change (RayX's CI installs a pinned
-   `rayx`); keep the two commits paired.
+   A change that breaks consumers follows the 1.x policy below. One that touches the `rayx app`
+   grammar, its flags, the artifact layout or the `[package.metadata.rayx]` contract needs the
+   matching RayX change (RayX's CI installs a pinned `rayx`); keep the two commits paired.
 2. On every push to `main` release-plz opens or updates the release pull request: the version bump
    in `Cargo.toml` and `Cargo.lock` and a new `CHANGELOG.md` section. Review it; edit the changelog
    text in the pull request if a line reads badly.
@@ -39,6 +35,34 @@ A release is a version tag `vX.Y.Z` on `main`. Two tools split the work:
 The first release, `v1.0.0`, works the same way: `Cargo.toml` already says `1.0.0` and has no tag, and
 in git-only mode release-plz treats a package without a matching tag as an initial release, so the
 `release` job tags it on the first push to `main` that contains the release-plz workflow.
+
+## The 1.x policy
+
+While the owner is the only consumer of `rayx`, releases stay on 1.x. release-plz proposes a major
+version for a `!` commit or a `BREAKING CHANGE:` footer and cannot cap it, so:
+
+- No commit is marked breaking: no `!` after the type or scope (`feat!:`, `feat(app)!:`) and no
+  `BREAKING CHANGE:` footer.
+- A break is committed as `feat` (or `fix` when it is a fix) whose body states what breaks, with a
+  `Migration:` footer that tells consumers what to change, for example:
+
+  ```text
+  feat(app): generated entry crates depend on the app's entry_dependencies
+
+  The entry crates no longer add implicit dependencies.
+
+  Migration: list the crates main.rs uses in [package.metadata.rayx] entry_dependencies.
+  ```
+
+  The changelog prints each `Migration:` footer under its commit's line. A break is therefore a
+  minor bump (`1.3.0` → `1.4.0`); releases stay 1.x.
+- A release pull request that proposes `2.0.0` means a stray marker. Do not merge it: find the
+  commit (`git log --grep='^BREAKING' --grep='!:' -E v<last>..origin/main`), keep a local ref at the
+  current head, reword the commit, `git fetch origin && git rebase origin/main`, push with
+  `git push --force-with-lease origin main`, and read the pull request again.
+- `semver_check = false` and `release_commits = "^(feat|fix|perf)"` stay as they are.
+
+The policy ends when a second consumer appears; then `!` and major bumps return.
 
 ## The `RELEASE_PLZ_TOKEN` secret
 

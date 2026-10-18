@@ -56,6 +56,15 @@ RayX's CI and docs call `rayx`. A change to the app grammar, flags, artifact lay
 Use Conventional Commits with meaningful scopes. Never add Claude co-author lines. Code moved from
 RayX names the RayX commit it came from in the commit message.
 
+## Releases
+
+`rayx` stays on 1.x while the owner is its only consumer. Never mark a commit breaking: no `!`
+after the type or scope and no `BREAKING CHANGE:` footer (release-plz would propose 2.0.0). A break
+is committed as `feat` (or `fix`) whose body states it, with a `Migration:` footer for consumers,
+and ships as a minor release. A release pull request that proposes 2.0.0 means a stray marker:
+reword that commit instead of merging. The policy ends when a second consumer appears; then `!` and
+major bumps return. See `docs/releasing.md`.
+
 <!-- agentx:begin -->
 ## AgentX
 
