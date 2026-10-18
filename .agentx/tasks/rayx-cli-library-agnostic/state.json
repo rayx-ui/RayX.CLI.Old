@@ -1,12 +1,12 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-library-agnostic",
-  "revision": 44,
-  "planRevision": 3,
+  "revision": 58,
+  "planRevision": 4,
   "specHashes": {
     "requirements": "1253bb2be269b49082cec20c66f289d8de709e4d974fabe26b581bd791c11721",
     "design": "119b483f0e4b9d896745b81fc93c47d0efce512ce35a84f0bf833fe5da60c996",
-    "plan": "bb9a20f705d2d67da214c4a22e12f22ff554c06fe717da5042df1fdbb1ec1c88"
+    "plan": "e76d26e9154e2a6d500e6bd1f0c09206fd03691a0cd73f4dfb7130536e3a8ed2"
   },
   "tasks": {
     "t01-pin-sources": {
@@ -64,19 +64,19 @@
       ]
     },
     "t10-release-pr": {
-      "status": "implemented",
+      "status": "done",
       "workerIds": [
         "coordinator-9fea8079"
       ]
     },
     "t11-release-v2": {
-      "status": "implemented",
+      "status": "done",
       "workerIds": [
         "coordinator-9fea8079"
       ]
     },
     "t12-mac-self-update": {
-      "status": "implemented",
+      "status": "done",
       "workerIds": [
         "coordinator-9fea8079"
       ]
@@ -88,6 +88,12 @@
       ]
     },
     "t14-web-host-page": {
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
+    },
+    "t15-devkit-graph": {
       "status": "done",
       "workerIds": [
         "coordinator-9fea8079"
@@ -130,6 +136,15 @@
         }
       },
       "recordedAt": "2026-10-18T22:24:53Z"
+    },
+    "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81": {
+      "snapshot": {
+        "specHash": "b0a7618e90dd4ae576f221cca325aad140302cc3354a302dc78c2f7f288709f6",
+        "repositories": {
+          "rayx-cli": "d2f30b92e32339312383e2acdf08328c87e9bf06f47856d68453aa6b95c755fe"
+        }
+      },
+      "recordedAt": "2026-10-18T22:55:45Z"
     }
   },
   "checkResults": {
@@ -574,6 +589,480 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-5e5ea49b2fb2.log",
       "logSha256": "d91a47a177a559668ef196a2ede10ef9b8a7406a238c1e563c05ea8aedb07e47",
       "inputsHash": "04a60cae0e2842095b6d21567abc3fc8682a769d0aa518a92c5206a8d6f979f9"
+    },
+    "final/check-pin-sources/final": {
+      "checkId": "check-pin-sources",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "131c50a0f81c7718a91e7b4919b8f36bc7499e6c402103aac251f4f025100147",
+      "basisHash": "c857292f991aed6930842ab698056bfe76d9605579ada7b47a7de07fa9db66e9",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 1.989,
+      "recordedAt": "2026-10-18T22:55:25Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-fda0fc7f007d.log",
+      "logSha256": "8cfc88b40ee729574b710376632c64d3adf6ed43c98c6c940e0c3f3ec4949b8a",
+      "inputsHash": "1877f8752fa8e4957b17eefd544ab7e7a0c99241f053e274cd4a3345e0b9fe1d"
+    },
+    "final/check-pin-existing/final": {
+      "checkId": "check-pin-existing",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "84b073e1deba345b9f23fd3cf56b8faceea262b1217d5a9e1f3a3e20a6ee2a50",
+      "basisHash": "e49c9befc124edc9d64908194c6cf0a30df3b1d90433f9d726816a2384ec6a91",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 35,
+      "durationSeconds": 6.0724,
+      "recordedAt": "2026-10-18T22:55:31Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-e8bff6058243.log",
+      "logSha256": "f31983437bdaea95534cc49eb66fda1e235ba6eaeba8958780cd0095a4d5692a",
+      "inputsHash": "6b1e16d03dab7e89b6a42d7234436a7b1b008cdcc34008608b0739e11bb96b20"
+    },
+    "final/check-entry-dependencies/final": {
+      "checkId": "check-entry-dependencies",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "f425788f4450ffd8ed7d85827db30f9b4b5ae570647a872b5f0fe6f2c6128fc5",
+      "basisHash": "01c90d33256d86093a18b2ef17a4842a45fce5b238c1c532930fff7df58f9269",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 10,
+      "durationSeconds": 1.2502,
+      "recordedAt": "2026-10-18T22:55:32Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-4c765bda4254.log",
+      "logSha256": "bc40a46cbe179a07b01cff97d66d317999808c8ea2bc2f1775334035c0bd0559",
+      "inputsHash": "17fdc382ec4f8d2431b0b3a2dc036fd93b42399b2b022724279270fc19299c91"
+    },
+    "final/check-entry-lockfile/final": {
+      "checkId": "check-entry-lockfile",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "0fef8b816046bef67cd6dff17273fab29dcca68fd48b2a00f9d4f3e830073738",
+      "basisHash": "eeff6867a6d679e3627bb95ddee89561640a1fe228b46a4788196ff2cec92421",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 1.3689,
+      "recordedAt": "2026-10-18T22:55:33Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-abe2d9de2eda.log",
+      "logSha256": "cf7af9d4fdd91aa9e4fc649daa42f465cf291b6d6ca915651f08710c80041e20",
+      "inputsHash": "5e65549ce94e547f01a5dc5fd28feeeffc4d78fbea49d4d4029fb350f64d8abc"
+    },
+    "final/check-entry-patches/final": {
+      "checkId": "check-entry-patches",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "2ee1f4e697b4828ddc1ab411e018b62b39d857195cfdfb23fd54b6683a9bdbb3",
+      "basisHash": "4b4f5052a8a686863f86064c5e8ff71c0b2ba8d879bcda9e0d729c1c6d0f3c59",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 0.9502,
+      "recordedAt": "2026-10-18T22:55:34Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-09174d12d636.log",
+      "logSha256": "fc9c2c04ec91b678b69bc091898c9458045893bbc6a9884ce18a11202c854f69",
+      "inputsHash": "2fbfab287c4815b0aa052b012c4e0c5f320a290e225b48aa36e30235e4011929"
+    },
+    "final/check-android-devkit/final": {
+      "checkId": "check-android-devkit",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "3d1c148cc39122f6672ba55fae001d4286902c1862cf729cc7cc829664cbe12e",
+      "basisHash": "3884dd8edd8faf374ed6d6ac72b816de61cf98b962443f0bc684005b5660b457",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.183,
+      "recordedAt": "2026-10-18T22:54:06Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-81bf11bf01f0.log",
+      "logSha256": "d444ccf5bc562e8b1512d8de583c089f6a969cac2ac5f324f0caeabf25181bc6",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "final/check-entry-existing-unit/final": {
+      "checkId": "check-entry-existing-unit",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "9abed2f31f1e99fc3f756381b80af68f6b677451e3b0ac0b50736795dcf3460a",
+      "basisHash": "35491cb6271e5c62bcb5d017d7a76eea847da39a0c907c4f49768d3b45ceaeff",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 33,
+      "durationSeconds": 0.995,
+      "recordedAt": "2026-10-18T22:55:35Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-b5b9281d1110.log",
+      "logSha256": "70e0c5b496cbfe7cce0926111c9318e3ecfbc3610f91cb441eda2250f4dc1dca",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "final/check-app-project-entry/final": {
+      "checkId": "check-app-project-entry",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "4c0919065ca642a3075ddebbf4996f476a2058442cee874c271f2a574b2ef5d5",
+      "basisHash": "64cb80d2b0dd20696c3e272d54dc269448688c4079d4341addd04dd25b319854",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 0.9742,
+      "recordedAt": "2026-10-18T22:55:36Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-94782fd1550d.log",
+      "logSha256": "022cabb5e0e1f8e3a5ea377384efc9bccc29aac8cbe4992ad5ae235ba7b9ecca",
+      "inputsHash": "6ab2f4e28d8114085b1b154d6e6bb78961caf853488835e138bd376fa2e04b29"
+    },
+    "final/check-package-fonts/final": {
+      "checkId": "check-package-fonts",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "d70ac4a7a462ef72d43ade9080414f984405458e51b5bc86a34339a2567360ab",
+      "basisHash": "f73357c7415be8c6a394a2b810d7451e31b54f1b2276af99253108fde349fbc0",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.3479,
+      "recordedAt": "2026-10-18T22:55:37Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-c1f1a4b70f7e.log",
+      "logSha256": "115c40be45e97e578c294bb5b538639c49497d757bf6f1f05a5cdb2267bdb272",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "final/check-assets-existing-unit/final": {
+      "checkId": "check-assets-existing-unit",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "2fe91ca7fbbaa8269eeb27c51dfab5439e13333819ff08438d8c04290a5c0484",
+      "basisHash": "e83a7ec69a73c01a1560055dcd9353a593c35c37104440626ccecb935845beb6",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 56,
+      "durationSeconds": 0.7722,
+      "recordedAt": "2026-10-18T22:55:37Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-2ac30afb9062.log",
+      "logSha256": "6015dc9fb13818f28ba7561916955fad1c05cf6d551e5a7dcd6558856cee2147",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "final/check-app-project-assets/final": {
+      "checkId": "check-app-project-assets",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "77a3f07b23a42c9007f2a97d3cf92dae30230c770e79220318ea50a93c7fca27",
+      "basisHash": "64cb80d2b0dd20696c3e272d54dc269448688c4079d4341addd04dd25b319854",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 0.9742,
+      "recordedAt": "2026-10-18T22:55:37Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-94782fd1550d.log",
+      "logSha256": "022cabb5e0e1f8e3a5ea377384efc9bccc29aac8cbe4992ad5ae235ba7b9ecca",
+      "inputsHash": "6ab2f4e28d8114085b1b154d6e6bb78961caf853488835e138bd376fa2e04b29"
+    },
+    "final/check-android-java-dirs/final": {
+      "checkId": "check-android-java-dirs",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "39e602bdfdc9d36ef44b38f01a8072573e77cf555f7b8d03ef5761f421dc8de5",
+      "basisHash": "a5c5c179151a499c27ba837c57a07515ee293113bc8f68aade3d656dc06f4799",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 0.9833,
+      "recordedAt": "2026-10-18T22:55:38Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-a660869077b8.log",
+      "logSha256": "ef5137c21802a4bbe8cefac8c987dda7e54bd768b582037d0bb147c41d42e646",
+      "inputsHash": "0d2f257db98de73336e8a5df93c8d3b3dd3ffe5406a0a127b99c256868eceba0"
+    },
+    "final/check-java-dirs-gradle/final": {
+      "checkId": "check-java-dirs-gradle",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "ae9aee0ea515171f3305be29cb581b6f1b98082894bc7338898be47b40bff054",
+      "basisHash": "1650b0333f3612ce54878d4d0d2c5a3b4aaf176eac13a27ed9d9b65c2beea879",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.2366,
+      "recordedAt": "2026-10-18T22:54:07Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-b8a9185ef903.log",
+      "logSha256": "1e5cdc5ebe09ce1dfa9793940e60e9265adf4019ff0ab97ddf86342300e90f7d",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "final/check-web-host-page/final": {
+      "checkId": "check-web-host-page",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "867ade4ef5b89a1f9cd2ffc07912da29805eb225cd0958d7e51d07f9758fe09a",
+      "basisHash": "42f350ec5f45a2d26d324fa50b31bd3da5611f82495298609a7d9fdd973fc3f1",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 1.0462,
+      "recordedAt": "2026-10-18T22:55:40Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-02a96bc8f5ef.log",
+      "logSha256": "6029a7cc2b02ceea15082ad9948ca8d158ea6011b2ff5ef01dc634a3be781f5b",
+      "inputsHash": "e227f877a3d4bda7ef7f218f057561f4e4a0d0f2374257f70772d28a1d19c001"
+    },
+    "final/check-library-agnostic/final": {
+      "checkId": "check-library-agnostic",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "746d1fab2b57c54e7e3f6edd88cfbb025a604b74e5791d205d3c7dfb91714b8a",
+      "basisHash": "97369c156b25bc4ec716fd56e17bedcac444f2c6a1a09b703ac00196cac58804",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 0.8204,
+      "recordedAt": "2026-10-18T22:55:40Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-f31a34a2a920.log",
+      "logSha256": "9a63aedb130184e9f33d3461814ee95c47ec8422e54805cb5a9ad618c2a6c1cc",
+      "inputsHash": "e23610b8d83fd7e19aca88a2d76c47339c591b47c1a704a543eacc3bca291181"
+    },
+    "final/check-contract-docs/final": {
+      "checkId": "check-contract-docs",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "6b3d55bc5ef7ba2f71ea9958c7788f72e93ab21b107ebad8f4d9757378fc701d",
+      "basisHash": "18504cb9f4ba7c2e814e70237c84a76f825e8cf2aae222f7b59607b9cac465b2",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 0.7255,
+      "recordedAt": "2026-10-18T22:55:41Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-c6a6d569e63d.log",
+      "logSha256": "d52aae284f01cb614261e02cfaf59a342864c34fe9cc9b5288193ad5dd1799bc",
+      "inputsHash": "ea8715bd7fdc7ac97355f42385a2602291d7df6342bce8206df4124702d700df"
+    },
+    "final/check-docs-existing/final": {
+      "checkId": "check-docs-existing",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "dbea792ebff3267cc390470d2d19fa58a7442b378903863a9e651afe48b490d6",
+      "basisHash": "47cb9f85a62aa7563fb70549a8eee039c2188216521ba509ca3e82a5081e0c45",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 33,
+      "durationSeconds": 2.8691,
+      "recordedAt": "2026-10-18T22:55:44Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-35161444eac8.log",
+      "logSha256": "3af0bb7f7e0cd98984e024c7313cdac96de66bedc149bd5c4cd3357dea8d7a2b",
+      "inputsHash": "a9b77b10506eb7b01bef534681d5d82d40d7290f1b693836667c72256b1b2c3a"
+    },
+    "final/check-release-policy/final": {
+      "checkId": "check-release-policy",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "29931fd5a2b71c5babed45995a44abdfbafc0814662d04555966161b847b25eb",
+      "basisHash": "a95ebf79bb2ec41ca3f090e87bf43b89daf9ecefa77ab84bed1f85564022376e",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 0.7223,
+      "recordedAt": "2026-10-18T22:55:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-e977808fc097.log",
+      "logSha256": "e386260cb4c440545a01614cf36b1183b59925f6248786f70b41e81b547ebadc",
+      "inputsHash": "bdfe5b6da785752af090f51385bc74c98d7052da098400b92235518cd07b1c7a"
+    },
+    "final/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "23126748b842fbceb362d60d96a23e4e5e7ccc96cb11f2f79b37ee70216d2044",
+      "basisHash": "d120358fd2cc60545f8c7fe7213f0f992f03417e9c0863f6d067b8c4195128b7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2905,
+      "recordedAt": "2026-10-18T22:54:07Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-c3a9b13d9ba4.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "6a20e8ceae5e96cc1304d8597a12cf865d1df82e65ad9cb02e7e05ccb1607d48"
+    },
+    "final/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "70b6208d2190ce2fc15e2a20d9dc28bd468d2aa96c39a9e2aaef6f1dc58a6c6b",
+      "basisHash": "78df8bc8e529061e572793ad42e948250f73d5f9ee4f04c6c1dd69089b0aeee4",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 3.7643,
+      "recordedAt": "2026-10-18T22:54:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-0fb4d760de8d.log",
+      "logSha256": "a5e1722b76799394be015a6affd4dcf0bdde0031f36c07f6c57ec410b1eb10da",
+      "inputsHash": "a306520d6aac11cc21b05e83f5cc9ffca227b9d517bbdbb847d243b402d08b16"
+    },
+    "final/final-fmt/final": {
+      "checkId": "final-fmt",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "6cf51d69de3d15125603fd368eece0211f771e6a4102b4a4ec1b0b46a6bf13cf",
+      "basisHash": "d7a97e1094ac977214cf7f0c6a7dcbe13639c05df64a6151ff6cb73dfa80f52c",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2952,
+      "recordedAt": "2026-10-18T22:55:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-a38672ccd281.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final/final-clippy/final": {
+      "checkId": "final-clippy",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "2dfdde80200a59addc9046b96bacf3e24457ea12cdf60a6c4602de9bf60a7065",
+      "basisHash": "12e46eee28b30e16fcb948b407fad2ba3ad97ecfe43fb49e90d7cba95f2900f9",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.1831,
+      "recordedAt": "2026-10-18T22:55:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/final-final-2077316303f4.log",
+      "logSha256": "a5f4c585ee974ca44916ac30a98bbc189e067a7e0a6bc6d2e8d6bc525be724af"
+    },
+    "s6-devkit-graph/check-android-devkit/final": {
+      "checkId": "check-android-devkit",
+      "boundaryId": "s6-devkit-graph",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "3d1c148cc39122f6672ba55fae001d4286902c1862cf729cc7cc829664cbe12e",
+      "basisHash": "3884dd8edd8faf374ed6d6ac72b816de61cf98b962443f0bc684005b5660b457",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.183,
+      "recordedAt": "2026-10-18T22:54:06Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-81bf11bf01f0.log",
+      "logSha256": "d444ccf5bc562e8b1512d8de583c089f6a969cac2ac5f324f0caeabf25181bc6",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "s6-devkit-graph/check-java-dirs-gradle/final": {
+      "checkId": "check-java-dirs-gradle",
+      "boundaryId": "s6-devkit-graph",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "ae9aee0ea515171f3305be29cb581b6f1b98082894bc7338898be47b40bff054",
+      "basisHash": "1650b0333f3612ce54878d4d0d2c5a3b4aaf176eac13a27ed9d9b65c2beea879",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.2366,
+      "recordedAt": "2026-10-18T22:54:07Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-b8a9185ef903.log",
+      "logSha256": "1e5cdc5ebe09ce1dfa9793940e60e9265adf4019ff0ab97ddf86342300e90f7d",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "s6-devkit-graph/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s6-devkit-graph",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "23126748b842fbceb362d60d96a23e4e5e7ccc96cb11f2f79b37ee70216d2044",
+      "basisHash": "d120358fd2cc60545f8c7fe7213f0f992f03417e9c0863f6d067b8c4195128b7",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2905,
+      "recordedAt": "2026-10-18T22:54:07Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-c3a9b13d9ba4.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "6a20e8ceae5e96cc1304d8597a12cf865d1df82e65ad9cb02e7e05ccb1607d48"
+    },
+    "s6-devkit-graph/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s6-devkit-graph",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "70b6208d2190ce2fc15e2a20d9dc28bd468d2aa96c39a9e2aaef6f1dc58a6c6b",
+      "basisHash": "78df8bc8e529061e572793ad42e948250f73d5f9ee4f04c6c1dd69089b0aeee4",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 3.7643,
+      "recordedAt": "2026-10-18T22:54:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-0fb4d760de8d.log",
+      "logSha256": "a5e1722b76799394be015a6affd4dcf0bdde0031f36c07f6c57ec410b1eb10da",
+      "inputsHash": "a306520d6aac11cc21b05e83f5cc9ffca227b9d517bbdbb847d243b402d08b16"
+    },
+    "s6-devkit-graph/check-devkit-graph/final": {
+      "checkId": "check-devkit-graph",
+      "boundaryId": "s6-devkit-graph",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "a806f4dbbe48d77a67b91ba20c74fbb85dc098f1c83cd41fee53878f12606e64",
+      "basisHash": "e86996e74740c230371cd4f65618c1d130f2df8c4419f4e09292730327316b85",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.2396,
+      "recordedAt": "2026-10-18T22:54:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-8abcdbb885a4.log",
+      "logSha256": "d2706e6f7051c24f374253d120250f21306c5c0adfa5f26d1625e589fb76227b",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
+    },
+    "final/check-devkit-graph/final": {
+      "checkId": "check-devkit-graph",
+      "boundaryId": "final",
+      "phase": "final",
+      "batchId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "definitionHash": "a806f4dbbe48d77a67b91ba20c74fbb85dc098f1c83cd41fee53878f12606e64",
+      "basisHash": "e86996e74740c230371cd4f65618c1d130f2df8c4419f4e09292730327316b85",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.2396,
+      "recordedAt": "2026-10-18T22:54:11Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s6-devkit-graph-final-8abcdbb885a4.log",
+      "logSha256": "d2706e6f7051c24f374253d120250f21306c5c0adfa5f26d1625e589fb76227b",
+      "inputsHash": "0ea7023412202940d58dbedf82c108cb7d80bb77181cdf46c2e3ac39068483a6"
     }
   },
   "reviews": {
@@ -1096,6 +1585,562 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
       }
+    },
+    "s5-release-1-4": {
+      "reviewerId": "reviewer-s5-2b8c41",
+      "snapshotId": "c27d136f903cc6fc61192a18ffd3c39bba002d4b2d9512ef460368ca5f07ef4c",
+      "criterionIds": [
+        "POL-2",
+        "REL-1",
+        "REL-2",
+        "REL-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "POL-2",
+            "REL-1",
+            "REL-2",
+            "REL-3"
+          ],
+          "sha256": "316878029b67904b01b4c93c1f2ae5d1f561894ec7c640c8b51523ab305e25fc"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md",
+          "kind": "source",
+          "criterionIds": [
+            "POL-2",
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "05e1e0c93ea22f2d71f96d5dae2d4c3fddb26de9e0a2dafc2d5409a39ef906dc"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml",
+          "kind": "source",
+          "criterionIds": [
+            "POL-2",
+            "REL-1"
+          ],
+          "sha256": "1e7571469516c36ee182515d885e7bacd34619ad898104f185f4cded24f50a11"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "REL-1",
+            "REL-2"
+          ],
+          "sha256": "145883e501e92d60847576a69e8330c1bc749e616744d5ac53af0a0ff65377e9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/update.rs",
+          "kind": "source",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "sha256": "1bcdbccdfd6b930c40763b9f6a8c97dbd8f43e5c88d885a21f30f08ece030fc9"
+        }
+      ],
+      "summaryMarkdown": "Checked the 1.4.0 release against primary sources. `v1.3.0..origin/main` has no breaking markers (count `0`). PR #9 is merged as `6528eb1`, changes only `Cargo.toml`, `Cargo.lock` and `CHANGELOG.md`, and every check passed on its final head. The tag `v1.4.0` points to `6528eb1`. Release run 39172926483 succeeded, and the release is published (not a draft or prerelease) with six archives, their `.sha256` files, `sha256.sum` and both installers. The CHANGELOG 1.4.0 section has six `Migration:` notes and no `[**breaking**]` marker, which matches the POL-2 preview excerpt. Only the changelog body and a comment changed in `release-plz.toml`, and the release workflows and `dist-workspace.toml` are untouched. On this Mac `rayx --version` prints `rayx 1.4.0`, and `rayx doctor --json` in a bare workspace reports only the `default` pin source. Finding `s5-rel1-commit-count` is resolved by `f24b56c`, which changes only that line to \"The 18 commits\", and the breaking-marker count on `v1.3.0..origin/main` still prints `0`.",
+      "findingIds": [
+        "s5-rel1-commit-count"
+      ],
+      "recordedAt": "2026-10-18T22:45:41Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893"
+      }
+    },
+    "s6-devkit-graph": {
+      "reviewerId": "reviewer-final-q7m2k9",
+      "snapshotId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "criterionIds": [
+        "FONT-1",
+        "PATCH-1",
+        "DEVKIT-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1",
+            "PATCH-1",
+            "DEVKIT-1"
+          ],
+          "sha256": "b009898628fc3d1ae168d2635dd3c2ba2da3efd4933e2fd391e1358bf2a52bf0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PATCH-1"
+          ],
+          "sha256": "ea6efe7aaca1b6050e9ac32dfdd982da191c4a741f872cef6aa02fb347b5b14c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/graph.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PATCH-1",
+            "FONT-1"
+          ],
+          "sha256": "73ceceeaa29cd8d9797097297d0a0ed53e8073f0ca3348cd746b79c139ce58c9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "FONT-1",
+            "PATCH-1",
+            "DEVKIT-1"
+          ],
+          "sha256": "b009898628fc3d1ae168d2635dd3c2ba2da3efd4933e2fd391e1358bf2a52bf0"
+        }
+      ],
+      "summaryMarkdown": "`build_android_app_with_toolchain` now derives `built_feature_selection(features, options)` once and shadows `features`, so the Java dirs, the Android entry manifest (and its graph-selected `[patch]` entries) and package-asset staging share the selection the native build compiles; cargo-ndk's `--features devkit` is unchanged and `validate_for` holds because `ensure_devkit_contract` runs first. `app::android::devkit_graph_tests` proves on a fixture app with `devkit = [\"dep:store_backend\", \"dep:devkit_assets\"]` (auto mode) that the patch and the devkit-only asset package appear only in the devkit build; its third test pins the single-selection wiring by source text. check-devkit-graph, check-java-dirs-gradle, check-android-devkit, fmt and clippy pass at revision 54.",
+      "findingIds": [],
+      "recordedAt": "2026-10-18T22:54:43Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893"
+      }
+    },
+    "final": {
+      "reviewerId": "reviewer-final-q7m2k9",
+      "snapshotId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "criterionIds": [
+        "FONT-1",
+        "ENTRY-1",
+        "ENTRY-2",
+        "LOCK-1",
+        "LOCK-2",
+        "PATCH-1",
+        "PATCH-2",
+        "DEVKIT-1",
+        "DEVKIT-2",
+        "JAVA-1",
+        "JAVA-2",
+        "PIN-1",
+        "WEB-1",
+        "WEB-2",
+        "GUARD-1",
+        "GUARD-2",
+        "DOC-1",
+        "DOC-2",
+        "POL-1",
+        "POL-2",
+        "REL-1",
+        "REL-2",
+        "REL-3"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/graph.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1",
+            "PATCH-1",
+            "JAVA-1",
+            "JAVA-2"
+          ],
+          "sha256": "73ceceeaa29cd8d9797097297d0a0ed53e8073f0ca3348cd746b79c139ce58c9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "kind": "source",
+          "criterionIds": [
+            "ENTRY-1",
+            "ENTRY-2",
+            "LOCK-1",
+            "LOCK-2",
+            "PATCH-1",
+            "PATCH-2",
+            "JAVA-1",
+            "JAVA-2"
+          ],
+          "sha256": "ea6efe7aaca1b6050e9ac32dfdd982da191c4a741f872cef6aa02fb347b5b14c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/context.rs",
+          "kind": "source",
+          "criterionIds": [
+            "ENTRY-1",
+            "FONT-1"
+          ],
+          "sha256": "1673adb3253f4091effc199664dc9ff2bcc5cab08e2ec5f114b74b249cc29eb2"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "ENTRY-1",
+            "PIN-1"
+          ],
+          "sha256": "4cec0af360345f740e8fe887b66445d46110da93ae19b31c2300a2493fe1023c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "7f2213bd3cc780b5da4641f61542fdd9062f60eca225d59c077b9919d977ed46"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1",
+            "WEB-1",
+            "WEB-2"
+          ],
+          "sha256": "fc9e01892161332b7ee0b77d6ba6b385b2db9d1fe65ae339a1515d6e35f896d9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/assets.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "sha256": "e330a22855f94c18d560ddd6e2bc2b3141ae52f70af57154be50f0b1ef493553"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/package_assets.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "sha256": "3ac84fc786368f4cb39b80e4386e94664ae1b155458302b17bf054110bee6317"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "DEVKIT-1",
+            "DEVKIT-2",
+            "JAVA-1",
+            "PATCH-1"
+          ],
+          "sha256": "b009898628fc3d1ae168d2635dd3c2ba2da3efd4933e2fd391e1358bf2a52bf0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-1"
+          ],
+          "sha256": "8bbc7d251e7528f24961572a872d8645e576c57bc1b96cff720bbe897cfca2be"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-2"
+          ],
+          "sha256": "ea1fd2074f322bc5721ca16f51f10b0720ce74759dbcd12d305086ee8474653b"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.lock",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-2"
+          ],
+          "sha256": "ad229f2aaa81fb0359af3d4c32090c068c256161eda69a3d7de3835bfd6c5fad"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/app-project.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1"
+          ],
+          "sha256": "4bc7fdbc329f68721f2eeb66476676dd6f14b15367676ab388c64602e7bd06b0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-2"
+          ],
+          "sha256": "a14e106cb2bbcfd454883e33a4879e2583a819ed1aa9b70709f157a4420e56ba"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-2",
+            "GUARD-2",
+            "POL-1"
+          ],
+          "sha256": "94b0f58d8af0b96957459c0a04ec8ee2dfab3affbfdb90fae765c81834c66ebb"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-2",
+            "GUARD-2",
+            "POL-1"
+          ],
+          "sha256": "94b0f58d8af0b96957459c0a04ec8ee2dfab3affbfdb90fae765c81834c66ebb"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml",
+          "kind": "source",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "sha256": "1e7571469516c36ee182515d885e7bacd34619ad898104f185f4cded24f50a11"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "sha256": "145883e501e92d60847576a69e8330c1bc749e616744d5ac53af0a0ff65377e9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md",
+          "kind": "source",
+          "criterionIds": [
+            "POL-2",
+            "REL-1",
+            "REL-2",
+            "REL-3"
+          ],
+          "sha256": "316878029b67904b01b4c93c1f2ae5d1f561894ec7c640c8b51523ab305e25fc"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CHANGELOG.md",
+          "kind": "source",
+          "criterionIds": [
+            "POL-2",
+            "REL-1"
+          ],
+          "sha256": "05e1e0c93ea22f2d71f96d5dae2d4c3fddb26de9e0a2dafc2d5409a39ef906dc"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_entry_dependencies.rs",
+          "kind": "test",
+          "criterionIds": [
+            "ENTRY-1",
+            "ENTRY-2"
+          ],
+          "sha256": "72cd970f53cd90d7b319af866d46b8232a9ca1c696aa085c55a3eaeeaca87d96"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_entry_lockfile.rs",
+          "kind": "test",
+          "criterionIds": [
+            "LOCK-1",
+            "LOCK-2"
+          ],
+          "sha256": "8f7523acd90a4985ac75fd5edb3b3042ee596728c7a81f737b7cad540ebb0192"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_entry_patches.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PATCH-1",
+            "PATCH-2"
+          ],
+          "sha256": "1ce6e4b6884c6415ea47a50c9e19981a37e4b9a8538a7b14dc75a0c08a7009d4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_android_java_dirs.rs",
+          "kind": "test",
+          "criterionIds": [
+            "JAVA-1",
+            "JAVA-2"
+          ],
+          "sha256": "a4e2cb1c73f34a06b7153ad3d2496955919b82bceae29eac8ea1a437316087e8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_web_host_page.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WEB-1",
+            "WEB-2"
+          ],
+          "sha256": "97197e6cac59d630605af77707a7e2f72885c6a49f2ccb2e768df8b9686ec9d6"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/pin_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "0a469ec7f2dc97e48950d35fd5df8bc402e463af4e1cf6e74f16e795633953ef"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "c85621cef9929a51ebc83f8e1c5cedbf646a78c18d2cb8b80376020a5d4b684c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/doctor.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "36c4c68269bf312c58213edef06892dc9b4cfe63354fd96c671e35edfa8ebaec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "e828cab9152c93902af20e84672d1a9b23c3a04c63a379e0eca672e657d5386c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_project.rs",
+          "kind": "test",
+          "criterionIds": [
+            "FONT-1",
+            "ENTRY-2",
+            "PATCH-1"
+          ],
+          "sha256": "cd071e107ce2ba6b1b9bce08813775d46e16dd6bc0612b17e7d23d95a73e1b80"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/library_agnostic.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GUARD-1",
+            "GUARD-2"
+          ],
+          "sha256": "adfa492b0e3808f3566d54346e154df8e2f4cc7d3acb93a564595acd156df7d1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GUARD-2"
+          ],
+          "sha256": "979940a9cc3faf86157768d81cff0d3deb2d2a1814b8197f2ab433257d601dc4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_contract_docs.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOC-1",
+            "DOC-2"
+          ],
+          "sha256": "f1466201cb65d84c26fb4fa01ca98538625c5df40642001052ef3990323e988a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_policy.rs",
+          "kind": "test",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "sha256": "6af27052bc2e522ad629450306c4bba0e830e8d17e1cb58d29da9a61dc741afb"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/readme_versions.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOC-2"
+          ],
+          "sha256": "db62e1a6858be24fc3176f077d5fefa59043e80f30ea7a889c85fa2ad592ca22"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "kind": "test",
+          "criterionIds": [
+            "FONT-1",
+            "WEB-2"
+          ],
+          "sha256": "fc9e01892161332b7ee0b77d6ba6b385b2db9d1fe65ae339a1515d6e35f896d9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DEVKIT-1",
+            "DEVKIT-2",
+            "FONT-1",
+            "JAVA-1",
+            "PATCH-1"
+          ],
+          "sha256": "b009898628fc3d1ae168d2635dd3c2ba2da3efd4933e2fd391e1358bf2a52bf0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "kind": "test",
+          "criterionIds": [
+            "ENTRY-2",
+            "LOCK-1",
+            "LOCK-2",
+            "PATCH-1"
+          ],
+          "sha256": "ea6efe7aaca1b6050e9ac32dfdd982da191c4a741f872cef6aa02fb347b5b14c"
+        }
+      ],
+      "summaryMarkdown": "**Passed.** The integrated `v1.3.0..HEAD` implementation plus the corrective sprint s6-devkit-graph meets all 23 criteria.\n\nF-FINAL-DEVKIT-GRAPH is resolved: `build_android_app_with_toolchain` derives `built_feature_selection(features, options)` once, so an `--android-devkit` build's Java dirs, entry manifest (graph-selected `[patch]` entries) and package-asset staging share the selection the native build compiles; `app::android::devkit_graph_tests` covers the patch and a devkit-only asset package. cargo-ndk arguments are unchanged.\n\nEverything else holds as reviewed before: one graph walker (`app::graph`) for assets, patches and Java dirs; generic `entry_dependencies` and feature forwarding; lockfile seeding of every entry crate; TOML-serialized patches; the app-owned web page with fail-fast placeholder checks and the neutral fallback; pins from project or default only; the library guard over `src/`, `Cargo.toml` and `Cargo.lock` with a minimal, self-checking allowlist; docs, README, CLAUDE.md = AGENTS.md and the 1.x release policy match the code; v1.4.0 is released (PR #9 touching only `Cargo.toml`/`Cargo.lock`/`CHANGELOG.md`, six archives, checksums, both installers, `rayx 1.4.0` installed here, no breaking markers). The entry-crate `default` (`<lib>/f`) limitation is deferred by the coordinator to an owner follow-up, as ENTRY-2 keeps today's meaning.",
+      "findingIds": [
+        "F-FINAL-DEVKIT-GRAPH"
+      ],
+      "recordedAt": "2026-10-18T22:55:53Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "bd71159977a25fdc20d6ad6f581ad1ce4f8e5344ef6254aa0302985513915893"
+      }
     }
   },
   "checkpoints": {
@@ -1130,6 +2175,22 @@
       },
       "reviewHash": "f362918a17c3fac3f8de51e3518f94debfb21b8ff5b2852914ce050256429718",
       "recordedAt": "2026-10-18T22:27:21Z"
+    },
+    "s5-release-1-4": {
+      "snapshotId": "c27d136f903cc6fc61192a18ffd3c39bba002d4b2d9512ef460368ca5f07ef4c",
+      "commits": {
+        "rayx-cli": "f24b56c5d851011ae0a865a9d8e34bc7b8d3a4c0"
+      },
+      "reviewHash": "e74d309cc4cdc6ca725def0334015ab92388bd38f2aa8f305893e5eb9f5ad742",
+      "recordedAt": "2026-10-18T22:45:52Z"
+    },
+    "s6-devkit-graph": {
+      "snapshotId": "e2f0a26626c58e2054da26e7878a17b162bc63b64553979bf3fc699bced99f81",
+      "commits": {
+        "rayx-cli": "7b9ce85838f69f74c93c3e39c16050bf19d2db65"
+      },
+      "reviewHash": "cd358f2b33359b43fc7bb6335f049f034e09f2d741bb5c6a5e007b028720e2ee",
+      "recordedAt": "2026-10-18T22:55:23Z"
     }
   },
   "findings": [
@@ -1192,6 +2253,46 @@
           "repositoryId": "rayx-cli",
           "path": "src/app/wasm.rs",
           "symbol": "tests::adjacent_placeholders_are_each_replaced"
+        }
+      ]
+    },
+    {
+      "id": "s5-rel1-commit-count",
+      "boundaryId": "s5-release-1-4",
+      "criterionIds": [
+        "REL-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "The REL-1 record in `docs/manual-verification.md` says \"The 19 commits `v1.3.0..cefab09`\". Expected: the record states the real count. Observed: `git rev-list --count v1.3.0..cefab09` prints `18`. The range is right and nothing else in the record is wrong. Repair: change `19` to `18` in a `docs(verify)` commit (or drop the number and keep the range).",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ]
+    },
+    {
+      "id": "F-FINAL-DEVKIT-GRAPH",
+      "boundaryId": "final",
+      "criterionIds": [
+        "PATCH-1",
+        "FONT-1",
+        "DEVKIT-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**An `--android-devkit` build uses two different app graphs.** `src/app/android.rs` `build_android_app_with_toolchain` collects `android_java_dirs` with `built_feature_selection(features, options)` (the selection plus `devkit`, the features the native build compiles through `cargo ndk ... --features devkit`). But in the same build `app.android_rust_manifest(features)` selects the root `[patch]` entries (`generated_patch_tables` -> `AppGraph::resolve`), and `stage_android_package_content(app, features, ...)` discovers package assets, both with the plain `features`, without `devkit`.\n\n*Expected* (d-app-graph: one walker, so \"in the app's graph\" means the same thing everywhere; PATCH-1/FONT-1: the graph for the selected features; d-entry-patches: the same selection for the same feature selection): a devkit build repeats the `[patch]` entries and stages the package assets of the packages its `devkit` feature reaches, exactly as it already passes their Java directories.\n\n*Observed*: for an app with `devkit = [\"dep:x\"]` where `x` reaches a root-patched crate or declares a package asset, `rayx app <dir> build|run|deploy|pack android --android-devkit` passes `x`'s Java directories to Gradle but writes an Android entry manifest without `x`'s patch (Cargo then resolves the unpatched crate, dropping the patched lock entry, needing the network and possibly a different version) and stages an APK without `x`'s assets. No test covers patches or package assets for a devkit build; only `a_devkit_build_collects_the_directories_its_devkit_feature_reaches` covers Java dirs.\n\n*Repair*: in `build_android_app_with_toolchain` compute `let built = built_feature_selection(features, options);` once and use it for `android_java_dirs`, `app.android_rust_manifest(&built)` (the cargo-ndk arguments stay unchanged: the native build still adds `--features devkit`, and `<lib>/devkit` in `default` is what that feature enables anyway) and `stage_android_package_content(app, &built, ...)`. Add a test to `app::android::devkit_contract_tests` (or a new named suite) showing that with `devkit = [\"dep:store_backend\"]` in the fixture app the devkit Android manifest carries the `store_backend` patch and the plain one does not, and that a devkit-only asset package is staged only for the devkit build.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "devkit_graph_tests"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "build_android_app_with_toolchain"
         }
       ]
     }

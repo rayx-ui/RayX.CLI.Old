@@ -2,9 +2,9 @@
 agentx:
   kind: decision
   scope: decisions/repository
-  status: current
+  status: superseded
   created: 2026-10-14T17:00:00+02:00
-  updated: 2026-10-14T17:00:00+02:00
+  updated: 2026-10-19T02:00:00+02:00
   promoted_from: rayx-cli-releases
   topics:
     - package
@@ -12,7 +12,8 @@ agentx:
     - dependencies
   supersedes:
     - 2026-10-08-repository-single-cargo-package.md
-  superseded_by: []
+  superseded_by:
+    - 2026-10-19-repository-library-agnostic-guard.md
 ---
 
 ## Decision: Ship rayx as one Cargo package and allow dependencies anyone can fetch

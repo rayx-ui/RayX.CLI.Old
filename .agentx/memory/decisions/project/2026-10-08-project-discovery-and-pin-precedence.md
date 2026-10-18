@@ -2,14 +2,15 @@
 agentx:
   kind: decision
   scope: decisions/project
-  status: current
+  status: superseded
   created: 2026-10-08T12:00:00+02:00
-  updated: 2026-10-08T12:00:00+02:00
+  updated: 2026-10-19T02:00:00+02:00
   topics:
     - project
     - pins
   supersedes: []
-  superseded_by: []
+  superseded_by:
+    - 2026-10-19-project-pins-from-project-or-default.md
 ---
 
 ## Decision: Find the project through Cargo and let the project own its version pins

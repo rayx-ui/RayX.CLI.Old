@@ -43,3 +43,6 @@ Implemented by the epic `rayx-cli-foundation` (sprint 4; design decisions `d-app
 - [WASM build, server and tests](../../../../src/app/wasm.rs)
 - [The rayx guide in RayX](../../../../../RayX/docs/src/rayx.md)
 - 2026-06-29 current [RayX app-directory xtask decision](../../../../../RayX/.agentx/memory/decisions/platform/packaging-targets/2026-06-29-platform-packaging-targets-app-directory-xtask.md)
+- 2026-10-19 current [Decision: rayx app names no library; projects declare what they need](../../decisions/app-pipeline/2026-10-19-app-pipeline-library-agnostic-contract.md) (epic `rayx-cli-library-agnostic`, released as rayx 1.4.0).
+- Open follow-up (final review of `rayx-cli-library-agnostic`, 2026-10-19): an entry crate's `default` lists the selected app features as `<app lib>/<f>` (ENTRY-2 kept that meaning), so a feature selected with `--features`/`--all-features` does not enable the entry crate's own feature `f`: its optional entry dependencies and `cfg(feature = "f")` code in `main.rs` stay off (only `devkit`, passed explicitly, works). Listing the entry features themselves in `default` would fix it; owner decision for a later 1.x minor.
+- Open follow-up: the `fix(app)` devkit-graph repair (`7b9ce85`) ships in the next release; its release-plz PR (1.4.1) waits for the owner.

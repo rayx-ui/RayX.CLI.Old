@@ -4,7 +4,7 @@ agentx:
   scope: decisions
   status: current
   created: 2026-10-07T23:30:00+02:00
-  updated: 2026-10-08T12:00:00+02:00
+  updated: 2026-10-19T02:00:00+02:00
   topics:
     - decisions
     - rayx-cli
@@ -22,7 +22,8 @@ Durable architecture choices for `rayx`. Current source remains the first eviden
   - [Describe the host with fixture probes and run every program through one Runner](host/2026-10-08-host-facts-and-command-runner.md)
 
 - project
-  - [Find the project through Cargo and let the project own its version pins](project/2026-10-08-project-discovery-and-pin-precedence.md)
+  - [Pins come from the project or the built-in default](project/2026-10-19-project-pins-from-project-or-default.md)
+  - ~~[Find the project through Cargo and let the project own its version pins](project/2026-10-08-project-discovery-and-pin-precedence.md)~~ (superseded)
 
 - setup
   - [Run scripts inside WSL with --exec so the login shell does not parse them](setup/2026-10-08-setup-wsl-scripts-run-with-exec.md)
@@ -37,7 +38,8 @@ Durable architecture choices for `rayx`. Current source remains the first eviden
   - [Parse the top level with clap and hand rayx app its arguments raw](app-pipeline/2026-10-08-app-pipeline-cli-surface-raw-app-arguments.md)
   - [Embed a Playwright package template and write it once into the app](app-pipeline/2026-10-08-app-pipeline-embedded-playwright-package-template.md)
   - [Format the workspace one member at a time](app-pipeline/2026-10-08-app-pipeline-fmt-per-member.md)
-  - [Move the xtask app pipeline first, then decouple it from RayX](app-pipeline/2026-10-08-app-pipeline-move-first-decouple-second.md)
+  - [rayx app names no library; projects declare what they need](app-pipeline/2026-10-19-app-pipeline-library-agnostic-contract.md)
+  - ~~[Move the xtask app pipeline first, then decouple it from RayX](app-pipeline/2026-10-08-app-pipeline-move-first-decouple-second.md)~~ (superseded)
   - [Prove the real RayX Test Suite spec against a consistent sibling set](app-pipeline/2026-10-08-app-pipeline-real-rayx-proof-uses-a-consistent-sibling-set.md)
 
 - distribution
@@ -48,5 +50,6 @@ Durable architecture choices for `rayx`. Current source remains the first eviden
   - [Organize RayX CLI memory by the CLI's module boundaries](repository/2026-10-07-repository-memory-taxonomy.md)
   - [Keep the nightly and JDK pins literal in each repository with one checklist](repository/2026-10-08-repository-literal-toolchain-pins-with-one-checklist.md)
   - [RayX keeps a slim xtask for its chores and calls rayx for everything else](repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md)
-  - [Ship rayx as one Cargo package and allow dependencies anyone can fetch](repository/2026-10-14-repository-dependency-sources-public-git.md)
+  - [One package, public dependencies, and no gpux or RayX library at all](repository/2026-10-19-repository-library-agnostic-guard.md)
+  - ~~[Ship rayx as one Cargo package and allow dependencies anyone can fetch](repository/2026-10-14-repository-dependency-sources-public-git.md)~~ (superseded)
   - ~~[Ship rayx as one Cargo package with a library and a thin binary](repository/2026-10-08-repository-single-cargo-package.md)~~ (superseded)

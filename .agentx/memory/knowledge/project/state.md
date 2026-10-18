@@ -33,4 +33,4 @@ Implemented in `src/project/` (epic `rayx-cli-foundation`, design decision `d-pr
 - [Pin tests](../../../../tests/project_pins.rs)
 - [Epic design (`d-project-pins`)](../../../tasks/rayx-cli-foundation/design.json)
 - [The compile-time repository root this replaced: the app project context](../../../../src/app/context.rs)
-- [gpux Android pins](../../../../../Gpux/tooling/testkit/src/android.rs)
+- 2026-10-19 current [Decision: pins come from the project or the built-in default](../../decisions/project/2026-10-19-project-pins-from-project-or-default.md) (epic `rayx-cli-library-agnostic`).

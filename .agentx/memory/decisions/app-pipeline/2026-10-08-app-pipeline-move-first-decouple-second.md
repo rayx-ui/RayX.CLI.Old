@@ -2,15 +2,16 @@
 agentx:
   kind: decision
   scope: decisions/app-pipeline
-  status: current
+  status: superseded
   created: 2026-10-08T12:00:00+02:00
-  updated: 2026-10-08T12:00:00+02:00
+  updated: 2026-10-19T02:00:00+02:00
   topics:
     - app
     - move
     - project-context
   supersedes: []
-  superseded_by: []
+  superseded_by:
+    - 2026-10-19-app-pipeline-library-agnostic-contract.md
 ---
 
 ## Decision: Move the xtask app pipeline first, then decouple it from RayX

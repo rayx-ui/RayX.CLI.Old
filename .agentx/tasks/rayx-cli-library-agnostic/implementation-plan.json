@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-library-agnostic",
-  "revision": 3,
+  "revision": 4,
   "title": "Library-agnostic rayx: entry_dependencies, android_java_dirs, lockfile-seeded entry crates, graph-selected patches, project-or-default pins, a guard, the 1.x release policy and the 1.4.0 release",
   "validationMode": "sprint",
   "repositories": [
@@ -650,6 +650,33 @@
       "expected": {
         "exitCode": 0
       }
+    },
+    {
+      "id": "check-devkit-graph",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PATCH-1",
+        "FONT-1",
+        "DEVKIT-1"
+      ],
+      "descriptionMarkdown": "New named unit suite `app::android::devkit_graph_tests`: an `--android-devkit` build uses the selection plus `devkit` for the Android entry manifest (its `[patch]` entries) and package-asset staging, like the Java directories.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "app::android::devkit_graph_tests"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/app-workspace/**"
+      ]
     }
   ],
   "finalCheckIds": [
@@ -1258,6 +1285,48 @@
             {
               "repositoryId": "rayx-cli",
               "path": "src/update.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s6-devkit-graph",
+      "title": "Final-review repair: one feature selection for a devkit Android build",
+      "dependsOn": [
+        "s5-release-1-4"
+      ],
+      "checkIds": [
+        "check-devkit-graph",
+        "check-java-dirs-gradle",
+        "check-android-devkit",
+        "check-fmt",
+        "check-clippy"
+      ],
+      "tasks": [
+        {
+          "id": "t15-devkit-graph",
+          "title": "Build the devkit Android graph from one selection",
+          "descriptionMarkdown": "Final review finding F-FINAL-DEVKIT-GRAPH: `build_android_app_with_toolchain` collected the Java directories with the selection plus `devkit` but generated the Android entry manifest (and so its graph-selected `[patch]` entries) and staged package assets with the plain selection. Compute `built_feature_selection(features, options)` once and use it for all three; the cargo-ndk arguments stay unchanged. Add the named unit suite `app::android::devkit_graph_tests` (a patch and an asset package reached only through the app's `devkit` feature appear only in a devkit build). Commit as `fix(app): build the --android-devkit graph from the selection plus devkit`; it ships in the next 1.x patch release (the release PR is left open for the owner).",
+          "criterionIds": [],
+          "supportingCriterionIds": [
+            "PATCH-1",
+            "FONT-1",
+            "DEVKIT-1"
+          ],
+          "designIds": [
+            "d-app-graph",
+            "d-android-devkit"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-devkit-graph"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/android.rs",
+              "symbol": "build_android_app_with_toolchain"
             }
           ]
         }
