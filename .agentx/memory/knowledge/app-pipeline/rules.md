@@ -4,7 +4,7 @@ agentx:
   scope: knowledge/app-pipeline
   status: current
   created: 2026-10-07T23:30:00+02:00
-  updated: 2026-10-08T23:59:00+02:00
+  updated: 2026-10-19T01:00:00+02:00
   topics:
     - app-commands
     - wasm
@@ -19,7 +19,7 @@ agentx:
 # App pipeline Rules
 
 - Keep RayX xtask's app grammar, flags and error text: `app <dir> <action> <target>`, release by default, `--release` rejected, `rayx_diagnostics` only for diagnostic-harness apps and never for pack, publish or deploy.
-- Generated Android, iOS and WASM entry crates depend on `rayx` with the same source the app itself uses (as `cargo metadata` reports it); never a fixed path.
+- Generated Android, iOS and WASM entry crates depend only on the app's library plus the app dependencies listed in `[package.metadata.rayx] entry_dependencies`, copied as the app declares them (source as `cargo metadata` reports it, rename, features, optional, target table); never a fixed path and no crate name is special. App features are forwarded generically; no `devkit` feature is invented, so `--android-devkit` requires the app's own `devkit` feature.
 - Join `target/`, `artifacts/` and `artifacts-temp/` to the selected workspace root on every target; keep the artifact layout byte-compatible with xtask for RayX apps.
 - Commands work for any app that uses RayX with no configuration: no app name, slug or RayX repository path is special. `test wasm` finds the Playwright package (workspace metadata, workspace `tools-node/`, app `tests/e2e/`) and creates the app-local one from the embedded template when none exists; it never overwrites user edits.
 - An app without `rayx` or `gpux-fonts` in its graph still builds for the web (the generated entry crate and the font root are optional); `tests/fixtures/threaded_wasm_app` keeps that true.
@@ -28,8 +28,8 @@ agentx:
 - The moved xtask app pipeline (`src/app/{android,desktop,ios,wasm,assets,descriptor,playwright}.rs`) still starts programs with `std::process::Command` through `app::process`, not `host::Runner`; this is a recorded exception to the repository rule, kept because the move had to preserve behavior. New code (`prereqs`, `fmt`, `wsl`, `setup`) goes through `Runner`; migrate the app pipeline module by module when its behavior is next changed.
 - Scripts that run inside WSL use `wsl -d <name> --exec bash -lc <script>`: `--` hands the arguments to the distribution's login shell, which expands the quotes and `$HOME` first.
 - `rayx` flags (`--no-install`, `--debug`, features) are read only before `--`; everything after it is the app's.
-- Build the iOS entry crate from the project's own `Cargo.lock` (copy it next to the generated manifest): a fresh resolution picks crates the project never built (`backtrace` 0.3.76 does not compile against `libc` 0.2.190 for iOS). The Android and web entry crates still resolve on their own, which is verified on Windows.
+- Build every entry crate (Android, iOS, web) from the project's own `Cargo.lock` (copied next to the generated manifest when the project has one): a fresh resolution picks crates the project never built (`backtrace` 0.3.76 does not compile against `libc` 0.2.190 for iOS). Root `[patch]` entries are repeated in each entry crate when their patched package is in the app's feature-aware graph (`app::graph`).
 - On macOS point `CC`, `CXX` and `AR` for `wasm32-unknown-unknown` at Homebrew's LLVM (`macos_llvm_env`) unless the user set them: Apple's clang has no wasm32 backend and build scripts such as `arborium-sysroot` compile C.
 - Choose the iOS Simulator from `xcrun simctl list devices available` by the id group, not the last parenthesis (that is the state): reuse a booted iPhone, else the newest listed one, and `simctl bootstatus` before installing. `pack ios` takes `--simulator` and `--device` like `build ios`.
-- An iOS app's Xcode Rust script phase must declare the static library as `outputFiles`, and a RayX iOS app strips dead code in Release (`DEAD_CODE_STRIPPING: YES`) so `io-surface`'s macOS-only CGL references do not fail the link. A RayX app's `main.rs` is compiled inside the generated entry crate, which only sees `rayx` and the app's own library: put Gpux-only iOS code in the library.
+- An iOS app's Xcode Rust script phase must declare the static library as `outputFiles`, and a RayX iOS app strips dead code in Release (`DEAD_CODE_STRIPPING: YES`) so `io-surface`'s macOS-only CGL references do not fail the link. An app's `main.rs` is compiled inside the generated entry crate, which only sees the app's own library and its `entry_dependencies`: put other platform code in the library.
 - On iOS the installed asset root is `<app>.app/assets` (next to the executable, as on desktop): an app that never looks inside its bundle starts without its package assets and fails on the first theme document. RayX opens its themes with the RayX Dtcg value extensions; strict DTCG 2025.10 rejects the design system (owner, 2026-10-09).
