@@ -1,0 +1,1267 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-library-agnostic",
+  "revision": 3,
+  "title": "Library-agnostic rayx: entry_dependencies, android_java_dirs, lockfile-seeded entry crates, graph-selected patches, project-or-default pins, a guard, the 1.x release policy and the 1.4.0 release",
+  "validationMode": "sprint",
+  "repositories": [
+    {
+      "id": "rayx-cli",
+      "path": ".",
+      "role": "execution"
+    },
+    {
+      "id": "rayx",
+      "path": "../RayX",
+      "role": "reference"
+    },
+    {
+      "id": "gpux",
+      "path": "../Gpux",
+      "role": "reference"
+    }
+  ],
+  "boundaries": {
+    "repositoryIds": [
+      "rayx-cli"
+    ],
+    "forbiddenPaths": [
+      ".agentx/tasks/rayx-cli-foundation/**",
+      ".agentx/tasks/rayx-cli-releases/**",
+      ".agentx/tasks/rayx-cli-guests/**",
+      ".agentx/tasks/rayx-cli-versions/**",
+      ".github/workflows/release.yml",
+      ".github/workflows/release-plz.yml",
+      ".github/workflows/ci.yml",
+      "dist-workspace.toml"
+    ]
+  },
+  "recordPaths": [
+    "docs/manual-verification.md"
+  ],
+  "checks": [
+    {
+      "id": "check-pin-sources",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PIN-1"
+      ],
+      "descriptionMarkdown": "New group `tests/pin_sources.rs`: project or default only, a workspace with a `gpux-testkit` member gets the defaults, declared Android pins come from the project, doctor shows two sources, files-only discovery.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "pin_sources"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/pin_sources.rs",
+        "tests/common/**"
+      ]
+    },
+    {
+      "id": "check-pin-existing",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PIN-1"
+      ],
+      "descriptionMarkdown": "The existing groups that encoded the gpux-checkout profile, rewritten to the generic rule (`project_pins`, `doctor`, `setup_android`).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "project_pins",
+        "--test",
+        "doctor",
+        "--test",
+        "setup_android"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 30
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/project_pins.rs",
+        "tests/doctor.rs",
+        "tests/setup_android.rs",
+        "tests/common/**",
+        "tests/fixtures/**"
+      ]
+    },
+    {
+      "id": "check-entry-dependencies",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "ENTRY-1",
+        "ENTRY-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_entry_dependencies.rs`: `entry_dependencies` (sources, rename, target table, optional, default none, unlisted `rayx`/`rayx_devkit`, both errors) and generic feature forwarding.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_entry_dependencies"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 8
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_entry_dependencies.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-entry-lockfile",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "LOCK-1",
+        "LOCK-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_entry_lockfile.rs`: all three entry crates seeded from the workspace lock, stale lock handling, the web dependency table without `zune-core`/`branches`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_entry_lockfile"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 3
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_entry_lockfile.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-entry-patches",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "PATCH-1",
+        "PATCH-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_entry_patches.rs`: patches selected by the feature-aware graph, written into all three entry crates with absolute paths, kept fields, quoted URL keys and valid TOML.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_entry_patches"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_entry_patches.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-android-devkit",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DEVKIT-1",
+        "DEVKIT-2"
+      ],
+      "descriptionMarkdown": "New named unit suite `app::android::devkit_contract_tests`: `--android-devkit` needs the app's `devkit` feature (checked before the toolchain), and the bridge message names no tool or package.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "app::android::devkit_contract_tests"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 3
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-entry-existing-unit",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "ENTRY-2",
+        "LOCK-1",
+        "LOCK-2",
+        "PATCH-1"
+      ],
+      "descriptionMarkdown": "The existing descriptor and Playwright unit tests that encoded the removed couplings or the fixture's old crate names, rewritten to the generic form.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "--",
+        "app::descriptor",
+        "app::playwright"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 25
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-app-project-entry",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "ENTRY-2",
+        "PATCH-1"
+      ],
+      "descriptionMarkdown": "The existing group `tests/app_project.rs` after its entry-dependency and patch tests are rewritten to the generic form.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_project"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_project.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-package-fonts",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "FONT-1"
+      ],
+      "descriptionMarkdown": "New named unit suite `app::wasm::package_fonts_tests`: fonts staged once from a package-asset declaration, absent in explicit mode without the id, nothing from an undeclared package named `gpux-fonts`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "app::wasm::package_fonts_tests"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 3
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-assets-existing-unit",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "FONT-1",
+        "WEB-2"
+      ],
+      "descriptionMarkdown": "The existing web, asset and package-asset unit tests after the font root is removed, the fixture's fonts package declares a package asset (and package assets use the shared graph), and the generated-page tests are rewritten for the app-owned page and the neutral fallback.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "--",
+        "app::wasm",
+        "app::assets",
+        "app::package_assets"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 45
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-app-project-assets",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "FONT-1"
+      ],
+      "descriptionMarkdown": "The existing group `tests/app_project.rs` after its `gpux-fonts` graph test is removed and the fixture's fonts package is renamed.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_project"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 7
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_project.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-android-java-dirs",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "JAVA-1",
+        "JAVA-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_android_java_dirs.rs`: declarations collected from the app's feature-aware graph (app included), sorted and deduplicated, the joined property string, packages outside the graph ignored, each validation error.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_android_java_dirs"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 6
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_android_java_dirs.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-java-dirs-gradle",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "JAVA-1"
+      ],
+      "descriptionMarkdown": "New named unit suite `app::android::java_dirs_gradle_tests`: the Gradle build command carries `-PrayxAndroidJavaDirs=...` when directories are declared and no such property otherwise.",
+      "argv": [
+        "cargo",
+        "test",
+        "--lib",
+        "app::android::java_dirs_gradle_tests"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 2
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-web-host-page",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "WEB-1",
+        "WEB-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_web_host_page.rs`: the app's `platform/web/index.html` copied with `__RAYX_MODULE__`, `__RAYX_TITLE__` and `__RAYX_DIAGNOSTICS__` replaced (diagnostics on and off, repeated placeholders, the rest unchanged), an unknown `__RAYX_*__` token refused with nothing written, and the neutral fallback page with none of the removed code.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_web_host_page"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_web_host_page.rs",
+        "tests/common/**",
+        "tests/fixtures/app-workspace/**"
+      ]
+    },
+    {
+      "id": "check-library-agnostic",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "GUARD-1",
+        "GUARD-2"
+      ],
+      "descriptionMarkdown": "New group `tests/library_agnostic.rs`: the scanner self-test, the repository scan of non-test `src/**/*.rs` with the allowlist (no stale entries), and the CLI's own `Cargo.toml`/`Cargo.lock`.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "library_agnostic"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/library_agnostic.rs"
+      ]
+    },
+    {
+      "id": "check-contract-docs",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DOC-1",
+        "DOC-2"
+      ],
+      "descriptionMarkdown": "New group `tests/app_contract_docs.rs`: the contract page's keys, property, sections and absent names; README pin section; the CLAUDE.md/AGENTS.md rule and their equality.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "app_contract_docs"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 5
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/app_contract_docs.rs",
+        "docs/app-project.md",
+        "README.md",
+        "CLAUDE.md",
+        "AGENTS.md"
+      ]
+    },
+    {
+      "id": "check-docs-existing",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "DOC-2",
+        "GUARD-2",
+        "POL-1"
+      ],
+      "descriptionMarkdown": "The existing groups that read the edited files: README sections (`readme_versions`), the package files (`package_layout`), `tests/dependency_sources.rs` after its module documentation points at the guard, and `release_automation` after the changelog body and `docs/releasing.md` change.",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "readme_versions",
+        "--test",
+        "package_layout",
+        "--test",
+        "dependency_sources",
+        "--test",
+        "release_automation"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 28
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/readme_versions.rs",
+        "tests/package_layout.rs",
+        "tests/dependency_sources.rs",
+        "tests/release_automation.rs",
+        "README.md",
+        "CLAUDE.md",
+        "AGENTS.md",
+        "release-plz.toml",
+        "docs/releasing.md",
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "check-release-policy",
+      "repositoryId": "rayx-cli",
+      "kind": "test",
+      "criterionIds": [
+        "POL-1"
+      ],
+      "descriptionMarkdown": "New group `tests/release_policy.rs`: `semver_check = false`, `release_commits = \"^(feat|fix|perf)\"`, the changelog body renders `Migration` footers, and `docs/releasing.md`, `CLAUDE.md`, `AGENTS.md` state the 1.x policy (no `feat!` advice left).",
+      "argv": [
+        "cargo",
+        "test",
+        "--test",
+        "release_policy"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "minimumTests": 4
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/release_policy.rs",
+        "release-plz.toml",
+        "docs/releasing.md",
+        "CLAUDE.md",
+        "AGENTS.md"
+      ]
+    },
+    {
+      "id": "check-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "PIN-1",
+        "ENTRY-1",
+        "FONT-1",
+        "GUARD-1"
+      ],
+      "descriptionMarkdown": "`cargo fmt --check` before each sprint checkpoint and push (CLAUDE.md iteration validation).",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "src/**",
+        "tests/**"
+      ]
+    },
+    {
+      "id": "check-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "PIN-1",
+        "ENTRY-1",
+        "FONT-1",
+        "GUARD-1"
+      ],
+      "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings` before each sprint checkpoint and push: every test target still compiles after an item is deleted (for example `PinSource::GpuxCheckout`, `resolved_package_dir`), so the release PR's CI does not go red mid-epic.",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      },
+      "inputs": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "src/**",
+        "tests/**"
+      ]
+    },
+    {
+      "id": "final-fmt",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "ENTRY-1",
+        "GUARD-1"
+      ],
+      "descriptionMarkdown": "`cargo fmt --check` for the package.",
+      "argv": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    },
+    {
+      "id": "final-clippy",
+      "repositoryId": "rayx-cli",
+      "kind": "static",
+      "criterionIds": [
+        "ENTRY-1",
+        "PIN-1",
+        "FONT-1",
+        "JAVA-1",
+        "GUARD-1"
+      ],
+      "descriptionMarkdown": "`cargo clippy --all-targets -- -D warnings`: compiles and lints the library, the binary and every test target, which also proves that no test group still names a deleted item (`PinSource::GpuxCheckout`, `GPUX_CHECKOUT`, `resolved_package_dir`, ...).",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "expected": {
+        "exitCode": 0
+      }
+    }
+  ],
+  "finalCheckIds": [
+    "final-fmt",
+    "final-clippy"
+  ],
+  "sprints": [
+    {
+      "id": "s1-pin-sources",
+      "title": "Pins from the project or the default: the gpux-checkout profile goes",
+      "dependsOn": [],
+      "checkIds": [
+        "check-pin-sources",
+        "check-pin-existing",
+        "check-fmt",
+        "check-clippy"
+      ],
+      "tasks": [
+        {
+          "id": "t01-pin-sources",
+          "title": "Delete the gpux-checkout pin profile",
+          "descriptionMarkdown": "In `src/project/pins.rs` remove `PinSource::GpuxCheckout`, `GpuxProfile`, `GPUX_CHECKOUT` and the `gpux` branch of the `pin` closure and of `android_build_tools`; update the module documentation (two sources) and reword the `DEFAULTS` comment so it names no library (it may keep pointing at the checklist `wasm-toolchain-update.md`). In `src/project/mod.rs` remove `Project::is_gpux_checkout`. Write `tests/pin_sources.rs` (temporary workspaces: one with a `gpux-testkit` member and no metadata, one declaring the three Android keys; files-only discovery with a failing recording runner as `tests/project_pins.rs` does; doctor text/JSON through the existing report API). Rewrite `tests/project_pins.rs` (`a_gpux_checkout_that_declares_nothing_uses_the_gpux_profile_for_android`, `project_metadata_beats_the_gpux_profile`, the files-only test's `gpux-checkout` case, the `GPUX_CHECKOUT` import), `tests/doctor.rs` (`pins_show_where_each_came_from`) and `tests/setup_android.rs` (three `PinSource::GpuxCheckout`), and delete `tests/fixtures/gpux-checkout/`. Commit as `feat(project): resolve pins from the project or the built-in defaults only` (no `!`, no `BREAKING CHANGE:`; 1.x policy), its body stating that the gpux-checkout profile is gone, with a `Migration:` footer naming the `[workspace.metadata.rayx]` keys that replace it. Before the sprint checkpoint: `git fetch origin && git rebase origin/main`; after it, check that `git rev-list --count -E --grep='^[a-z]+(\\([^)]*\\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..HEAD` prints 0 (1.x policy: no breaking markers), then `git push --force-with-lease origin main` (owner policy; no branch, no PR).",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "designIds": [
+            "d-pin-sources",
+            "d-library-agnostic-contract"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-pin-sources",
+            "check-pin-existing"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/project/pins.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/project/mod.rs",
+              "symbol": "Project::is_gpux_checkout"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/project_pins.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/doctor.rs",
+              "symbol": "pins_show_where_each_came_from"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/setup_android.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/gpux-checkout/Cargo.toml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-entry-crates",
+      "title": "Generated entry crates: entry_dependencies, lockfile seeding, patches from the graph, the DevKit contract",
+      "dependsOn": [],
+      "checkIds": [
+        "check-entry-dependencies",
+        "check-entry-lockfile",
+        "check-entry-patches",
+        "check-android-devkit",
+        "check-entry-existing-unit",
+        "check-app-project-entry",
+        "check-fmt",
+        "check-clippy"
+      ],
+      "tasks": [
+        {
+          "id": "t02-entry-dependencies",
+          "title": "entry_dependencies and generic feature forwarding",
+          "descriptionMarkdown": "Extend `project::Dependency` with `rename`, `target`, `features`, `default_features` from `cargo metadata` (`rename`, `target`, `features`, `uses_default_features`; best effort in the files-only `manifest_dependencies`), and `dependency_toml` to write `package`, `default-features = false`, `features` and `optional` beside the source. In `src/app/descriptor.rs` read `entry_dependencies`, resolve each key against the app package's normal dependency declarations (errors per ENTRY-1), write the declarations (target-specific ones under `[target.'<cfg>'.dependencies]`), and build feature lines generically (transitive walk per ENTRY-2, generalizing `manifest_has_active_dependency`). Delete `manifest_feature_contains`, the `devkit` special case, the `rayx`/`rayx_devkit` lines and their comment. Rewrite the `app-workspace` fixture: `crates/rayx` and `crates/rayx_devkit` become neutral packages (for example `crates/ui_runtime` and an optional `crates/inspector` behind an app feature such as `inspect = [\"dep:inspector\"]`), the fixture app lists them in `entry_dependencies`; update every reference to the old paths (`src/app/descriptor.rs`, `src/app/playwright.rs` and other unit tests, `tests/app_project.rs`, `tests/common` users). Write `tests/app_entry_dependencies.rs`. Commit as `feat(app): generated entry crates depend on the app's entry_dependencies`, its body stating the break (no implicit dependencies, no invented `devkit` feature), with a `Migration:` footer (list the crates `main.rs` uses in `entry_dependencies`).",
+          "criterionIds": [
+            "ENTRY-1",
+            "ENTRY-2"
+          ],
+          "designIds": [
+            "d-entry-dependencies",
+            "d-library-agnostic-contract"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-entry-dependencies",
+            "check-entry-existing-unit",
+            "check-app-project-entry"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/descriptor.rs",
+              "symbol": "AppDescriptor::write_generated_rust_manifest"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/context.rs",
+              "symbol": "dependency_toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/project/mod.rs",
+              "symbol": "Dependency"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/app_project.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/app-workspace/apps/demo/Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/playwright.rs"
+            }
+          ]
+        },
+        {
+          "id": "t03-entry-lockfile",
+          "title": "Seed every entry crate from Cargo.lock; drop the zune-core and branches pins",
+          "descriptionMarkdown": "In `write_generated_rust_manifest` copy the workspace `Cargo.lock` for every target (not only iOS), removing a stale lock first, and keep only `wasm-bindgen`/`wasm-bindgen-futures` in the web block (delete the `zune-core` and `branches` lines and the `rclite` comment). Rewrite the descriptor unit tests `the_ios_entry_crate_starts_from_the_workspace_lockfile` and `web_manifest_is_generated_with_the_locked_wasm_bindgen`. Write `tests/app_entry_lockfile.rs`. Commit as `feat(app): seed every generated entry crate from the project's Cargo.lock`, its body stating that the web entry crate no longer pins `zune-core` or adds `branches/std`, with a `Migration:` footer (the crate that needs `branches/std` declares it).",
+          "criterionIds": [
+            "LOCK-1",
+            "LOCK-2"
+          ],
+          "designIds": [
+            "d-entry-lockfile"
+          ],
+          "dependsOn": [
+            "t02-entry-dependencies"
+          ],
+          "checkIds": [
+            "check-entry-lockfile",
+            "check-entry-existing-unit"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/descriptor.rs",
+              "symbol": "AppDescriptor::write_generated_rust_manifest"
+            }
+          ]
+        },
+        {
+          "id": "t04-app-graph-patches",
+          "title": "The app's resolved graph and root patches selected by it",
+          "descriptionMarkdown": "Create `src/app/graph.rs` per `d-app-graph` (cargo metadata through `host::Runner`, normal-edge walk from the app, packages with metadata) and move `package_assets::discover_package_assets` onto it (its tests in `app::package_assets` keep passing). Replace `generated_web_patch_lines` and `ProjectContext::root_patch_path` with the generic selection and TOML rendering of `d-entry-patches`, written into all three entry crates. Rewrite the fixture's `patches/indxdb` and `patches/rexie` as neutral crates.io patches: one reached through an optional app dependency behind a feature (for example `store = [\"dep:store_backend\"]`, `store_backend = { version = \"0.1\", optional = true }`), one never reached, and record the reached one (and the unused one as `[[patch.unused]]`) in the fixture's `Cargo.lock` next to the `wasm-bindgen` pin entry so `cargo metadata` never needs the crates.io index (checked during planning: with a complete lock, resolution is offline; without it Cargo updates the index). Rewrite `web_manifest_repeats_the_root_storage_patches_only_for_active_storage` (descriptor unit test) and `root_patches_come_from_the_selected_workspace` (`tests/app_project.rs`). Write `tests/app_entry_patches.rs`. Commit as `feat(app): repeat the root patches the app's graph uses in every entry crate`, its body stating the changed rule, with a `Migration:` footer if a project relied on the old gate.",
+          "criterionIds": [
+            "PATCH-1",
+            "PATCH-2"
+          ],
+          "designIds": [
+            "d-app-graph",
+            "d-entry-patches"
+          ],
+          "dependsOn": [
+            "t03-entry-lockfile"
+          ],
+          "checkIds": [
+            "check-entry-patches",
+            "check-entry-existing-unit",
+            "check-app-project-entry"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/descriptor.rs",
+              "symbol": "generated_web_patch_lines"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/context.rs",
+              "symbol": "ProjectContext::root_patch_path"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/package_assets.rs",
+              "symbol": "discover_package_assets"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/app-workspace/Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/app-workspace/Cargo.lock"
+            }
+          ]
+        },
+        {
+          "id": "t05-android-devkit",
+          "title": "--android-devkit needs the app's devkit feature; a generic registry hint",
+          "descriptionMarkdown": "In `src/app/android.rs` check, in the build, run/deploy and pack entry points before `setup_android_machine`, that an `--android-devkit` build's app manifest defines a `devkit` feature (error per DEVKIT-1). Move the final bridge lines into a function returning the registration file and registry directory text without a command, tool or package name, and without \"RayX DevKit\" (DEVKIT-2); `install_android_devkit_bridge` prints it. Add the named suite `devkit_contract_tests` in `android.rs` (fixture app from `test_support::FixtureWorkspace` with and without the feature). Commit as `feat(app): --android-devkit requires the app's devkit feature` (body states the break; `Migration:` footer: define a `devkit` feature) and `fix(app): print only the DevKit registry location` (or one `feat(app)` commit covering both). Before the sprint checkpoint: `git fetch origin && git rebase origin/main`; after it, check that `git rev-list --count -E --grep='^[a-z]+(\\([^)]*\\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..HEAD` prints 0 (1.x policy: no breaking markers), then `git push --force-with-lease origin main` (owner policy; no branch, no PR).",
+          "criterionIds": [
+            "DEVKIT-1",
+            "DEVKIT-2"
+          ],
+          "designIds": [
+            "d-android-devkit"
+          ],
+          "dependsOn": [
+            "t02-entry-dependencies"
+          ],
+          "checkIds": [
+            "check-android-devkit"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/android.rs",
+              "symbol": "install_android_devkit_bridge"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/android.rs",
+              "symbol": "build_android_app_with_toolchain"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/test_support.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-assets-android",
+      "title": "Fonts as package assets, Android Java directories from the graph, and the app-owned web page",
+      "dependsOn": [
+        "s2-entry-crates"
+      ],
+      "checkIds": [
+        "check-package-fonts",
+        "check-assets-existing-unit",
+        "check-app-project-assets",
+        "check-android-java-dirs",
+        "check-java-dirs-gradle",
+        "check-web-host-page",
+        "check-fmt",
+        "check-clippy"
+      ],
+      "tasks": [
+        {
+          "id": "t06-package-fonts",
+          "title": "Delete the gpux-fonts extra root",
+          "descriptionMarkdown": "In `src/app/wasm.rs` `copy_app_assets` stage through `assets::package_app_assets_with_selection` only; delete `assets::package_app_assets_with_additional_roots` (fold its body into the selection function) and `ProjectContext::{resolved_package_dir, find_resolved_package_dir}`. Rewrite the unit test `wasm_app_content_is_beside_index_and_outside_asset_catalog` (its font package declares a `kind = \"fonts\"` package asset and the app includes it) and add the named suite `package_fonts_tests` (FONT-1's three cases, temporary fixture packages as that test builds them). In the `app-workspace` fixture turn `crates/gpux_fonts` into a neutral fonts package (for example `crates/demo_fonts`, package `demo-fonts`) with `rayx.assets.toml` and `[package.metadata.rayx.assets]`, add its id to the fixture app's explicit `include`, and delete `the_gpux_fonts_assets_come_from_the_resolved_dependency_graph` from `tests/app_project.rs`; fix any asset expectation the new package changes in `app::assets`/`app::package_assets`. Commit as `feat(app): fonts come only through package assets`, its body stating the break, with a `Migration:` footer (a fonts package declares a package asset; explicit-mode apps add its id to `include`).",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "designIds": [
+            "d-fonts-package-assets",
+            "d-app-graph"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-package-fonts",
+            "check-assets-existing-unit",
+            "check-app-project-assets"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/wasm.rs",
+              "symbol": "copy_app_assets"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/assets.rs",
+              "symbol": "package_app_assets_with_additional_roots"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/context.rs",
+              "symbol": "ProjectContext::find_resolved_package_dir"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/app_project.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/app-workspace/crates/gpux_fonts/Cargo.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/fixtures/app-workspace/apps/demo/rayx.assets.toml"
+            }
+          ]
+        },
+        {
+          "id": "t07-android-java-dirs",
+          "title": "android_java_dirs and -PrayxAndroidJavaDirs",
+          "descriptionMarkdown": "Add `AppDescriptor::android_java_dirs` and the public property helper per `d-android-java-dirs` (re-exported from `rayx_cli::app` like `wasm_cargo_command`), compute the directories before Gradle in `build_android_app_with_toolchain` and pass them through `apply_android_gradle_properties`. Add fixture declarations (for example a `java/` directory with one placeholder file in the neutral runtime package, one in the optional package behind its feature, one in a workspace member the app does not depend on). Write `tests/app_android_java_dirs.rs` and the named suite `java_dirs_gradle_tests` in `android.rs`. Commit as `feat(app): pass the Android Java directories packages declare to Gradle`.",
+          "criterionIds": [
+            "JAVA-1",
+            "JAVA-2"
+          ],
+          "designIds": [
+            "d-android-java-dirs",
+            "d-app-graph"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-android-java-dirs",
+            "check-java-dirs-gradle"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/android.rs",
+              "symbol": "apply_android_gradle_properties"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/descriptor.rs",
+              "symbol": "AppDescriptor"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/mod.rs"
+            }
+          ]
+        },
+        {
+          "id": "t14-web-host-page",
+          "title": "The app-owned platform/web/index.html and a neutral fallback page",
+          "descriptionMarkdown": "Per WEB-1, WEB-2 and `d-web-host-page` (amendment 2): add `AppDescriptor::web_page()`, replace `write_wasm_host` with the page function (app page or embedded neutral fallback; the three placeholders; unknown `__RAYX_<NAME>__` tokens refused with token, path and line), render it before `cargo build` in `build_with_profile` and write it where the host page is written today; re-export it from `rayx_cli::app`. Delete `html_island_diagnostics_bootstrap` and every `__DIAGNOSTIC_*__`/`__HTML_ISLAND_DIAGNOSTICS__` substitution. Rewrite the `app::wasm` unit tests that assert the removed page code (delete `html_island_diagnostics_bootstrap_includes_probe_contract`; `all_features_selects_a_diagnostics_enabled_wasm_host` and `generated_wasm_host_diagnostics_policy_omits_diagnostics_for_production` assert the `__RAYX_DIAGNOSTICS__` value; the base-href and deep-link tests use the fallback). `tests/app_wasm_fixture.rs` (ignored, web set) keeps passing unchanged: the fallback still names `/threaded_wasm_app_web.js`. Write `tests/app_web_host_page.rs`. Commit as `feat(app): the web page is the app's platform/web/index.html`, its body stating that `rayx` no longer generates diagnostics, HTML-island, thread or WebGPU code, with a `Migration:` footer (an app that relied on the generated diagnostics page adds `platform/web/index.html` using `__RAYX_MODULE__`, `__RAYX_TITLE__`, `__RAYX_DIAGNOSTICS__`). Before the sprint checkpoint: `git fetch origin && git rebase origin/main`; after it, check that `git rev-list --count -E --grep='^[a-z]+(\\([^)]*\\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..HEAD` prints 0 (1.x policy: no breaking markers), then `git push --force-with-lease origin main` (owner policy; no branch, no PR).",
+          "criterionIds": [
+            "WEB-1",
+            "WEB-2"
+          ],
+          "designIds": [
+            "d-web-host-page",
+            "d-library-agnostic-contract"
+          ],
+          "dependsOn": [
+            "t06-package-fonts"
+          ],
+          "checkIds": [
+            "check-web-host-page",
+            "check-assets-existing-unit"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/wasm.rs",
+              "symbol": "write_wasm_host"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/wasm.rs",
+              "symbol": "html_island_diagnostics_bootstrap"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/wasm.rs",
+              "symbol": "build_with_profile"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/descriptor.rs",
+              "symbol": "AppDescriptor"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/app/mod.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/app_wasm_fixture.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-guard-docs",
+      "title": "The library-agnostic guard, the documented contract and the 1.x release policy",
+      "dependsOn": [
+        "s1-pin-sources",
+        "s2-entry-crates",
+        "s3-assets-android"
+      ],
+      "memoryScopes": [
+        "app-pipeline",
+        "repository"
+      ],
+      "checkIds": [
+        "check-library-agnostic",
+        "check-contract-docs",
+        "check-release-policy",
+        "check-docs-existing",
+        "check-fmt",
+        "check-clippy"
+      ],
+      "tasks": [
+        {
+          "id": "t08-library-guard",
+          "title": "tests/library_agnostic.rs",
+          "descriptionMarkdown": "Write the guard per GUARD-1/GUARD-2 and `d-library-guard` (including the amendment-2 page-glue names, which apply to the source scan only). Expected allowlist after sprints 1 to 3 (verify, keep it minimal, give each a reason): `--branches` in the git command of `src/setup/guest.rs`; the prose naming gpux and RayX work in `src/cli.rs` (`about` and the `setup` doc), `src/setup/mod.rs` and `src/setup/linux.rs`; and, if kept, the bridge's default registry directory `rayx-devkit-android` in `src/app/android.rs` (or rename that directory to a neutral one). Reword any other comment that names a library. Update the module documentation of `tests/dependency_sources.rs` (no gpux or RayX library dependency, see `tests/library_agnostic.rs`) and the Layout section of `CLAUDE.md` and `AGENTS.md` (identical): replace \"(Gpux included)\" with the library-agnostic rule. Commit as `test: guard that rayx names and depends on no gpux or RayX library` and `docs(repository): state the library-agnostic rule`.",
+          "criterionIds": [
+            "GUARD-1",
+            "GUARD-2"
+          ],
+          "designIds": [
+            "d-library-guard",
+            "d-library-agnostic-contract"
+          ],
+          "dependsOn": [],
+          "checkIds": [
+            "check-library-agnostic",
+            "check-docs-existing"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/dependency_sources.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "CLAUDE.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "AGENTS.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/cli.rs"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "Cargo.toml"
+            }
+          ]
+        },
+        {
+          "id": "t09-contract-docs",
+          "title": "docs/app-project.md, README and the migration notes",
+          "descriptionMarkdown": "Update `docs/app-project.md` per DOC-1 (neutral names only) and README per DOC-2 (pin order and table, the `rayx app` pointer). Write `tests/app_contract_docs.rs` (string and section checks in the style of `tests/readme_versions.rs`; CLAUDE.md = AGENTS.md). Commit as `docs(app): document entry_dependencies, android_java_dirs, lockfile seeding and the 1.4 migration`.",
+          "criterionIds": [
+            "DOC-1",
+            "DOC-2"
+          ],
+          "designIds": [
+            "d-contract-docs"
+          ],
+          "dependsOn": [
+            "t08-library-guard"
+          ],
+          "checkIds": [
+            "check-contract-docs",
+            "check-docs-existing"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/app-project.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "README.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/readme_versions.rs"
+            }
+          ]
+        },
+        {
+          "id": "t13-release-policy",
+          "title": "The 1.x release policy: Migration footers in the changelog, docs/releasing.md, CLAUDE.md/AGENTS.md",
+          "descriptionMarkdown": "Per POL-1 and `d-release-1x`: add a `commit.footers` loop to the `[changelog] body` of `release-plz.toml` that prints `Migration` footers under the commit line (nothing else in `release-plz.toml` changes; `semver_check = false` and `release_commits` stay). Rewrite the commit table and the breaking-change advice of `docs/releasing.md` into the 1.x policy, and add the short Releases paragraph to `CLAUDE.md` and `AGENTS.md` (identical). Write `tests/release_policy.rs`. Commit as `docs(release): stay on 1.x and carry migration notes in Migration footers` (the template change may be its own `build(release): ...` commit). Before the sprint checkpoint: `git fetch origin && git rebase origin/main`; after it, check that `git rev-list --count -E --grep='^[a-z]+(\\([^)]*\\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..HEAD` prints 0 (1.x policy: no breaking markers), then `git push --force-with-lease origin main` (owner policy; no branch, no PR).",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "designIds": [
+            "d-release-1x"
+          ],
+          "dependsOn": [
+            "t09-contract-docs"
+          ],
+          "checkIds": [
+            "check-release-policy",
+            "check-docs-existing"
+          ],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "release-plz.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/releasing.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "CLAUDE.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "AGENTS.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "tests/release_automation.rs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-release-1-4",
+      "title": "Release rayx 1.4.0 (GitHub-dependent; blanket go-ahead) and install it on this Mac",
+      "dependsOn": [
+        "s4-guard-docs"
+      ],
+      "memoryScopes": [
+        "distribution"
+      ],
+      "checkIds": [],
+      "tasks": [
+        {
+          "id": "t10-release-pr",
+          "title": "Local release-plz preview, everything on main, the release PR proposes 1.4.0",
+          "descriptionMarkdown": "POL-2: install release-plz on this Mac if missing (for example `cargo binstall release-plz` or `brew install release-plz`), `git fetch origin --tags`, create a throwaway `git worktree` of the local `main`, run `release-plz update` there, read the proposed version (`1.4.0`) and the new `CHANGELOG.md` section (the `Migration:` notes rendered, no `[**breaking**]`), then remove the worktree; nothing is committed from it. REL-1: make sure every epic commit is on `origin/main` (`git fetch origin && git rebase origin/main`, the pre-push count of `PUSH` prints 0, `git push --force-with-lease origin main`). Wait for the Release-plz run on `main` and read the release PR (`gh pr list --repo rayx-ui/RayX.CLI`, `gh pr view <n> --json title,files`): version `1.4.0`, only `Cargo.toml`, `Cargo.lock` and `CHANGELOG.md` changed, the `Migration:` notes in the section. A 2.x proposal means a stray `!`/`BREAKING CHANGE:`: keep a local ref at the current head (so checkpointed commits stay reachable), reword that commit, force-push with `--force-with-lease`, and re-read; never merge a 2.x PR. Record POL-2 and REL-1 in `docs/manual-verification.md` and commit as `docs(verify): ...`.",
+          "criterionIds": [
+            "POL-2",
+            "REL-1"
+          ],
+          "designIds": [
+            "d-release-1x"
+          ],
+          "dependsOn": [],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/releasing.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "release-plz.toml"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        },
+        {
+          "id": "t11-release-v2",
+          "title": "Merge the release PR under the blanket go-ahead; tag v1.4.0 and the GitHub Release",
+          "descriptionMarkdown": "The owner pre-approved the merge (amendment 1, D): no stop to ask, but merge only when the release PR's CI and Release-build runs are green (a red run goes through the repair loop first), its version is still `1.4.0` and it changes only `Cargo.toml`, `Cargo.lock` and `CHANGELOG.md`. `RELEASE_PLZ_TOKEN` exists (amendment 1, C); if a release-plz run fails at checkout or push, report it to the owner instead of retrying blindly. Then watch release-plz push `v1.4.0` and the dist Release workflow finish (`gh run list`, `gh run watch`), check `gh release view v1.4.0 --repo rayx-ui/RayX.CLI`, fast-forward the local `main`, and record REL-2 in `docs/manual-verification.md`.",
+          "criterionIds": [
+            "REL-2"
+          ],
+          "designIds": [
+            "d-release-1x"
+          ],
+          "dependsOn": [
+            "t10-release-pr"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/releasing.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            }
+          ]
+        },
+        {
+          "id": "t12-mac-self-update",
+          "title": "rayx self update --release 1.4.0 on this Mac",
+          "descriptionMarkdown": "Run `rayx self update --release 1.4.0`, `rayx --version`, and `rayx doctor --json` in a workspace without `[workspace.metadata.rayx]` (pin sources `project`/`default` only). The owner accepted (amendment 1, D) that local RayX app builds use `rayx self update --release 1.3.0` until RayX's `rayx-released-libraries` switch; note that in the record. Record REL-3 in `docs/manual-verification.md`, commit as `docs(verify): ...`, fetch/rebase and push.",
+          "criterionIds": [
+            "REL-3"
+          ],
+          "designIds": [
+            "d-release-1x"
+          ],
+          "dependsOn": [
+            "t11-release-v2"
+          ],
+          "checkIds": [],
+          "sourceRefs": [
+            {
+              "repositoryId": "rayx-cli",
+              "path": "docs/manual-verification.md"
+            },
+            {
+              "repositoryId": "rayx-cli",
+              "path": "src/update.rs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

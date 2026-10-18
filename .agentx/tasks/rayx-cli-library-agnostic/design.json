@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-library-agnostic",
+  "decisions": [
+    {
+      "id": "d-library-agnostic-contract",
+      "requirementIds": [
+        "FONT",
+        "ENTRY",
+        "LOCK",
+        "PATCH",
+        "DEVKIT",
+        "JAVA",
+        "WEB",
+        "PIN",
+        "GUARD",
+        "DOC"
+      ],
+      "descriptionMarkdown": "`rayx app` takes everything about an app from the selected workspace and from what packages declare in the CLI's own vocabulary; it names no library. The CLI vocabulary is: the `[package.metadata.rayx]` and `[workspace.metadata.rayx]` tables (including the new `entry_dependencies` and `android_java_dirs`), the `rayx.assets.toml` schema, the app features `rayx_diagnostics` (with `diagnostic_harness`) and `devkit` (the `--android-devkit` bridge: `RAYX_ANDROID_DEVKIT_PORT`, port 47123, the `devkit.metadata` probe, the registration file), the default Android activity, the `RAYX_*` environment variables, the app-owned web page `platform/web/index.html` with its placeholders `__RAYX_MODULE__`/`__RAYX_TITLE__`/`__RAYX_DIAGNOSTICS__` and the neutral fallback page's `data-rayx-wasm` marker, the `-PrayxAndroid*` Gradle properties, the binary and Lima VM name `rayx`. Everything else that used to be special (`gpux-fonts`, `rayx`, `rayx_devkit`, `devkit` in generated manifests, `zune-core`, `branches`, `rayx_storage_surrealdb`, `indxdb`, `rexie`, `gpux-testkit`, `rayx_devkit_mcp`, the generated page's HTML-island, thread and WebGPU diagnostics) is replaced by a declaration or an app-owned file, or deleted, and `tests/library_agnostic.rs` keeps it that way.",
+      "invariantsMarkdown": "- No package, crate or feature name of a gpux or RayX library decides behaviour anywhere in non-test `src/`.\n- What the CLI still knows by name is CLI vocabulary and is documented in `docs/app-project.md`.\n- Everything the previous decoupling established stays: `ProjectContext` from real discovery, outputs under the selected workspace root, entry dependencies copied from the app's own resolved dependency (`dependency_toml`), the pinned `wasm-bindgen` and web toolchain, Playwright package resolution, the prerequisite step.",
+      "rationaleMarkdown": "Owner rule (2026-10-18): `rayx` is environment setup, the app pipeline and (later) project templates; it must not know or depend on any gpux or RayX library. The libraries become independently released by tag, so a CLI that names them would need a CLI release for every library rename or new crate, and a project outside RayX could not use the pipeline without impersonating RayX's crate names. The foundation decision `Move the xtask app pipeline first, then decouple it from RayX` left exactly these name-based couplings in place (a `cargo metadata` lookup of `gpux-fonts`, entry manifests depending on `rayx`/`rayx_devkit`); this decision finishes the decoupling and supersedes it. Its still-valid content (the move, `ProjectContext`, the Playwright and prerequisite behaviour) is restated in the invariants so the promoted successor is complete.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/context.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/app-project.md"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-move-first-decouple-second.md"
+        }
+      ]
+    },
+    {
+      "id": "d-app-graph",
+      "requirementIds": [
+        "FONT",
+        "PATCH",
+        "JAVA"
+      ],
+      "descriptionMarkdown": "One owner of \"the app's resolved dependency graph\": a new module `src/app/graph.rs` runs `cargo metadata --format-version 1 --manifest-path <app>` with the feature selection (`CargoMetadataContext`) through `host::Runner::query` with `RUSTUP_AUTO_INSTALL=0`, and returns the packages reachable from the app over normal (non-dev, non-build) dependency edges, the app included, each with id, name, manifest path and `metadata`. Package-asset discovery (`package_assets::discover_package_assets`), patch selection and `android_java_dirs` collection all use it; the app's own node is skipped by the consumers that want dependencies only (package assets). `ProjectContext::{resolved_package_dir, find_resolved_package_dir}` and the name lookup go away. One `cargo metadata` per generated manifest or asset staging is acceptable.",
+      "invariantsMarkdown": "- One walker; no consumer runs its own `cargo metadata` of the app or walks `resolve.nodes` itself.\n- Feature-aware: what an unselected feature reaches is not in the graph.\n- Read-only and offline when the project's lockfile is complete.",
+      "rationaleMarkdown": "Package assets already walk the feature-aware graph correctly (`discover_from_metadata`); patches and Java directories need the same set, and three walkers would drift. The `Runner` is the repository rule for new code that starts programs; the app pipeline migrates module by module when its behaviour changes, which this is.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/package_assets.rs",
+          "symbol": "discover_from_metadata"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/context.rs",
+          "symbol": "ProjectContext::find_resolved_package_dir"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "symbol": "CargoMetadataContext"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/host/2026-10-08-host-facts-and-command-runner.md"
+        }
+      ]
+    },
+    {
+      "id": "d-fonts-package-assets",
+      "requirementIds": [
+        "FONT"
+      ],
+      "descriptionMarkdown": "`wasm::copy_app_assets` calls the ordinary package-asset staging (`assets::package_app_assets_with_selection`) with no extra roots. `assets::package_app_assets_with_additional_roots` folds into it (its additional-roots branch is deleted). A fonts package declares `[package.metadata.rayx.assets] manifest = \"rayx.assets.toml\"` with `version = 1`, `[asset_package] id = \"<id>\"`, `kind = \"fonts\"`, `namespace = \"\"`, `[assets] roots = [\"assets\"]`, so its `fonts/...` files land at the same logical paths the old extra root produced, on every target.",
+      "invariantsMarkdown": "- The web asset tree is built by the same code path as the other targets' trees.\n- A duplicate logical path is still an error (`asset logical path collision`); with one source for the fonts there is no duplicate.",
+      "rationaleMarkdown": "The font root was a gpux-specific special case on the web only, while gpux's SVG renderer loads `fonts/...` through the app's `AssetSource` on every platform. Package assets already serve exactly this, including explicit opt-in.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "symbol": "copy_app_assets"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/assets.rs",
+          "symbol": "package_app_assets_with_additional_roots"
+        }
+      ]
+    },
+    {
+      "id": "d-entry-dependencies",
+      "requirementIds": [
+        "ENTRY"
+      ],
+      "descriptionMarkdown": "`AppDescriptor` reads `entry_dependencies` (array of strings, default empty) from the app's `[package.metadata.rayx]`. For each key it finds the app's normal dependency declarations whose key (rename, else package name) matches, in the workspace package's `cargo metadata` dependencies; `project::Dependency` gains `rename`, `target`, `features` and `default_features` (`uses_default_features`) so `dependency_toml` can write `package = \"...\"`, `default-features = false`, `features = [...]` and `optional = true` next to the source it writes today, and the generator writes target-specific declarations under `[target.'<cfg>'.dependencies]`. Feature lines: for each app feature except `default`, `f = [\"<lib>/f\"]` plus `\"dep:<key>\"` for each optional entry dependency that `f` enables through a transitive walk of the app's `[features]` table (members `dep:<key>`, `<key>/<x>`, the implicit feature `<key>`; not `<key>?/<x>`); the existing `manifest_has_active_dependency` walk is generalized for this and its storage-specific use is removed. `manifest_feature_contains`, the `devkit` filtering and the `rayx`/`rayx_devkit` lines are deleted.",
+      "invariantsMarkdown": "- No dependency or feature name is special in generated manifests.\n- An entry dependency is declared like the app declares it; the source spelling stays `dependency_toml`'s (absolute path, git with rev/branch/tag, registry version; other registries refused).\n- `default = [...]` keeps today's meaning.",
+      "rationaleMarkdown": "The entry crate compiles `main.rs`, so it must see exactly the crates `main.rs` uses, and only the app knows which those are. Copying the declaration (rename, features, target) is what makes `main.rs` resolve the same crate the app resolves; copying only the source (today) silently changes renamed or target-specific dependencies. `default` keeps forwarding `<lib>/f` so builds of existing apps do not change beyond the declared dependencies.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "symbol": "AppDescriptor::write_generated_rust_manifest"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/context.rs",
+          "symbol": "dependency_toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "symbol": "Dependency"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "symbol": "Project::discover_with_cargo"
+        }
+      ]
+    },
+    {
+      "id": "d-entry-lockfile",
+      "requirementIds": [
+        "LOCK"
+      ],
+      "descriptionMarkdown": "`write_generated_rust_manifest` copies the workspace `Cargo.lock` next to every generated manifest (Android, iOS, web) on each generation, removing a stale one first; without a workspace lock it only removes the stale one. The web dependency block keeps `wasm-bindgen = \"=<locked>\"` and `wasm-bindgen-futures = \"0.4\"` and drops the `zune-core` and `branches` lines with their comment.",
+      "invariantsMarkdown": "- The entry crate never resolves crates the project's lockfile did not choose, unless the project has no lockfile.\n- The CLI pins no crate on behalf of a library.",
+      "rationaleMarkdown": "The iOS crate already starts from the project's lockfile because fresh resolution broke a native build (`backtrace` 0.3.76 vs `libc` 0.2.190); the web crate's `zune-core` pin worked around the same class of problem, and `branches/std` is a need of the crate that uses `rclite`, which RayX now declares itself. Seeding all three removes the workarounds generically. If a web build still needs an extra entry dependency after seeding, the repair loop adds a generic `web_entry_dependencies` key (minor release); it is not designed in advance.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "symbol": "AppDescriptor::write_generated_rust_manifest"
+        }
+      ]
+    },
+    {
+      "id": "d-entry-patches",
+      "requirementIds": [
+        "PATCH"
+      ],
+      "descriptionMarkdown": "The root manifest's `[patch]` tables are read as TOML; an entry's patched package is its `package` field, else its key. Using `d-app-graph` with the build's feature selection, the generator keeps the entries whose patched package name is in the graph, makes a relative `path` absolute under the workspace root (`cargo_path` spelling), keeps every other field, and serializes the kept `[patch.<key>]` tables with the `toml` crate (so URL keys are quoted) into every generated entry crate. `ProjectContext::root_patch_path` and `generated_web_patch_lines` are replaced.",
+      "invariantsMarkdown": "- A patch is copied because the app's graph contains its package, never because of a name.\n- All three entry crates get the same selection for the same feature selection.",
+      "rationaleMarkdown": "Patches apply only from the root of the workspace being built, and every entry crate is its own workspace; matching by the resolved graph covers storage back ends, vendored fixes and anything else without the CLI knowing what they are. No platform filter: a patch unused on one target only produces Cargo's `patch was not used` warning.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "symbol": "generated_web_patch_lines"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/context.rs",
+          "symbol": "ProjectContext::root_patch_path"
+        }
+      ]
+    },
+    {
+      "id": "d-android-devkit",
+      "requirementIds": [
+        "DEVKIT"
+      ],
+      "descriptionMarkdown": "`--android-devkit` stays as CLI vocabulary: it builds the entry crate with `--features devkit` and `RAYX_ANDROID_DEVKIT_PORT`, forwards the port and writes the registration file. Because the generated entry crate no longer invents an empty `devkit` feature, the Android build/run/deploy/pack paths check, before the toolchain is set up, that the app's manifest defines a `devkit` feature, and fail with a clear error otherwise. The final message comes from a small function that returns the registration file and registry directory lines, with no command, tool or package name.",
+      "invariantsMarkdown": "- The bridge protocol (port, probe, registration fields) is unchanged.\n- A missing `devkit` feature fails before any long-running step.",
+      "rationaleMarkdown": "Without the check, the old always-present `devkit = []` would turn into a cargo-ndk error after the toolchain setup, or the bridge would wait for a connector that was never built. The MCP command in the hint named a RayX package that this CLI cannot know exists.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "install_android_devkit_bridge"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "take_android_build_options"
+        }
+      ]
+    },
+    {
+      "id": "d-android-java-dirs",
+      "requirementIds": [
+        "JAVA"
+      ],
+      "descriptionMarkdown": "`AppDescriptor::android_java_dirs(&AppFeatureSelection) -> Result<Vec<PathBuf>>` reads `metadata.rayx.android_java_dirs` from every package `d-app-graph` returns (the app included), validates each entry (array of strings, relative, canonical path stays under the package directory, existing directory), and returns the sorted, deduplicated absolute directories. A public helper renders `-PrayxAndroidJavaDirs=<std::env::join_paths(dirs)>` (`None` for no directories). `android.rs` computes the directories once per build, before Gradle, and `apply_android_gradle_properties` adds the property to the Gradle build command.",
+      "invariantsMarkdown": "- Only the app's graph for the selected features contributes.\n- Nothing is passed when nothing is declared, so a Gradle file's own default still applies.",
+      "rationaleMarkdown": "A Java directory belongs to the library that ships it; declaring it there and collecting it from the graph lets an app use a mobile platform crate from a git tag without a checkout path, mirroring how package assets work. `join_paths` gives the platform separator and refuses a path that contains it.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "apply_android_gradle_properties"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "symbol": "AppDescriptor"
+        }
+      ]
+    },
+    {
+      "id": "d-web-host-page",
+      "requirementIds": [
+        "WEB"
+      ],
+      "descriptionMarkdown": "`AppDescriptor` gains `web_page()` → `<app>/platform/web/index.html` (beside `android_gradle_dir`/`ios_dir`). `wasm.rs` gets one page function: read the app page if it exists, else the embedded neutral fallback (a constant using the same placeholders), replace `__RAYX_MODULE__` with `/<module base>.js`, `__RAYX_TITLE__` with the slug and `__RAYX_DIAGNOSTICS__` with `diagnostics_enabled(features)` as `true`/`false`, and refuse any other `__RAYX_<NAME>__` token with the token, path and line. `build_with_profile` renders the page before `cargo build` (fail fast) and writes it after `wasm-bindgen` where `write_wasm_host` writes today. `html_island_diagnostics_bootstrap` and the `__DIAGNOSTIC_*__`/`__HTML_ISLAND_DIAGNOSTICS__` substitutions are deleted. The page function is re-exported from `rayx_cli::app` for the new test group, like `wasm_cargo_command`.",
+      "invariantsMarkdown": "- `rayx` writes no diagnostics, HTML-island, thread or WebGPU code into any page; an app page is copied verbatim apart from the three placeholders.\n- The diagnostics decision (`diagnostics_enabled`, `diagnostic_harness`, `rayx_diagnostics`) is unchanged and reaches the page only as `true`/`false`.\n- The output layout (`index.html` beside the wasm-bindgen output) and the fallback's `<base href=\"/\" />` deep-link behaviour are unchanged.",
+      "rationaleMarkdown": "Owner amendment 2 (2026-10-18): the page glue serves RayX's and gpux's own diagnostics and the specs that read them, so it belongs to the apps that use it, exactly like their Gradle and Xcode projects; a CLI that generates it has to change whenever a library's diagnostics change. Three placeholders are all a page needs from the build. Failing on unknown `__RAYX_*__` tokens turns a typo into an error instead of a page that silently loads nothing. RayX copies today's generated page into its apps in its own epic, so behaviour is preserved there.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "symbol": "write_wasm_host"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "symbol": "build_with_profile"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "symbol": "AppDescriptor::android_gradle_dir"
+        }
+      ]
+    },
+    {
+      "id": "d-pin-sources",
+      "requirementIds": [
+        "PIN"
+      ],
+      "descriptionMarkdown": "`Pins::resolve` keeps one rule for every key: the project's value with source `Project`, else `DEFAULTS` with source `Default` (`android_build_tools` stays `None` without a project key). `PinSource::GpuxCheckout`, `GpuxProfile`, `GPUX_CHECKOUT`, `Project::is_gpux_checkout` and the `tests/fixtures/gpux-checkout` fixture are deleted; the module documentation and README describe two sources. Project discovery itself is unchanged.",
+      "invariantsMarkdown": "- One `Pins` value flows to setup, doctor and the app pipeline; no module re-reads pins.\n- Built-in defaults live in the one `DEFAULTS` table.\n- Pin precedence: project, then default.",
+      "rationaleMarkdown": "The gpux-checkout profile was the bridge until Gpux declared `[workspace.metadata.rayx]` (named as a follow-up in the superseded decision). With the owner rule it must go: Gpux declares its Android pins in its own manifest (epic `gpux-releases`), consistent with keeping pins literal in each repository. Discovery through Cargo, `RUSTUP_AUTO_INSTALL=0` and the files fallback stay as the superseded decision describes and are restated by the successor.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "symbol": "Pins::resolve"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "symbol": "Project::is_gpux_checkout"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/project/2026-10-08-project-discovery-and-pin-precedence.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/repository/2026-10-08-repository-literal-toolchain-pins-with-one-checklist.md"
+        }
+      ]
+    },
+    {
+      "id": "d-library-guard",
+      "requirementIds": [
+        "GUARD"
+      ],
+      "descriptionMarkdown": "`tests/library_agnostic.rs` holds a pure scanner (`text -> Vec<(line, token)>` after removing the trailing `#[cfg(test)] mod tests` block), the deny list (exact names and prefixes, compared case-insensitively with `-` = `_`), and the allowlist of `(path, token, reason)` entries. It walks `src/**/*.rs` (skipping files declared only under `#[cfg(test)]`, today `src/app/test_support.rs`), reports violations and allowlist entries that matched nothing, and checks the CLI's own `Cargo.toml` dependency tables and `Cargo.lock` package names against the same deny list. The deny list is the package names of Gpux, RayX.Dtcg, RayX.Reactive, RayX.SignalR and RayX as of 2026-10-18 (as families where they have a prefix) plus the crates the CLI used to special-case, and, for the source scan only, the web page glue that now belongs to apps (`htmlisland`/`html_island` anywhere in a token, `__rayxthreaddiagnostics*`, `webgpu_status`, `wasm_thread_status`; amendment 2); a new library crate outside those families is added to the list when it appears. The bare word `rayx` is not denied (binary, namespaces, Lima VM).",
+      "invariantsMarkdown": "- The allowlist is minimal: CLI vocabulary and non-package uses only, each with a reason; prose that merely mentions a library in a comment is reworded instead.\n- A stale allowlist entry fails.\n- The CLI's dependency graph contains no gpux or RayX library, whatever its source.",
+      "rationaleMarkdown": "A token scan is cheap, needs no parser and catches identifiers, string literals and comments alike; the `-`/`_` equivalence covers package names and their Rust spellings. Gpux has a package literally named `gpux` (`crates/gpui`), so the bare word must be denied and the setup prose that names gpux as the work it prepares a machine for is allowlisted with that reason. The repository decision `Ship rayx as one Cargo package and allow dependencies anyone can fetch` named a pinned git dependency on Gpux as allowed; the owner rule forbids any gpux or RayX library dependency, so this decision supersedes it (one package and the source rules of `tests/dependency_sources.rs` stay and are restated).",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml"
+        }
+      ],
+      "supersedesMemoryDecisions": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/repository/2026-10-14-repository-dependency-sources-public-git.md"
+        }
+      ]
+    },
+    {
+      "id": "d-contract-docs",
+      "requirementIds": [
+        "DOC"
+      ],
+      "descriptionMarkdown": "`docs/app-project.md` stays the contract and gains the new keys, the lockfile and patch rules, the CLI vocabulary list and a \"Migrating to rayx 1.4\" section, all with neutral example names; README's pin section and `CLAUDE.md`/`AGENTS.md` state the two pin sources and the library-agnostic rule. `tests/app_contract_docs.rs` checks the documented names against the implemented ones, like the README groups do.",
+      "invariantsMarkdown": "- Documentation, like code, names no gpux or RayX library package.\n- `CLAUDE.md` and `AGENTS.md` stay identical.",
+      "rationaleMarkdown": "The contract page is what app and library authors (and the RayX and Gpux epics) implement against; library-specific steps belong to those repositories. A docs test is the repository's existing way to keep README text true.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/app-project.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md"
+        }
+      ]
+    },
+    {
+      "id": "d-release-1x",
+      "requirementIds": [
+        "POL",
+        "REL"
+      ],
+      "descriptionMarkdown": "The library-agnostic change ships as **1.4.0** under the owner's 1.x policy (amendment 1, 2026-10-18). Commits are typed `feat(project)`, `feat(app)`, `fix(app)`, ... with no `!` and no `BREAKING CHANGE:` footer; a commit that breaks consumers states the break in its body and carries a `Migration:` footer. `release-plz.toml` keeps `semver_check = false` and `release_commits = \"^(feat|fix|perf)\"`, and its `[changelog] body` gains a loop over `commit.footers` that prints the `Migration` ones under the commit line; `docs/releasing.md` replaces the `feat!` → major row and advice with the 1.x policy (break = minor, `Migration:` footer, 2.x proposal = stray marker to reword, ends with a second consumer); `CLAUDE.md`/`AGENTS.md` gain a short Releases paragraph. Before each push, `git rev-list --count -E --grep='^[a-z]+(\\([^)]*\\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..HEAD` must print 0. Implementation is pushed straight to `main` (fetch, rebase, `--force-with-lease`) after each sprint checkpoint. In the final sprint a local release-plz preview (a throwaway worktree) proves 1.4.0 and the footer rendering, the release PR is checked (1.4.0, CI green, only `Cargo.toml`/`Cargo.lock`/`CHANGELOG.md`) and merged under the blanket go-ahead, release-plz tags `v1.4.0`, dist builds the GitHub Release, and `rayx self update --release 1.4.0` proves the installer path on this Mac.",
+      "invariantsMarkdown": "- No commit of this epic is marked breaking; the release stays 1.x.\n- `.github/workflows/release-plz.yml`, `.github/workflows/release.yml`, `dist-workspace.toml` and `ci.yml` do not change; `release-plz.toml` changes only in its changelog body.\n- Tags come only from release-plz (or the documented by-hand fallback).",
+      "rationaleMarkdown": "Owner amendment 1: the owner is the only consumer, so no repository leaves 1.x for now, and release-plz cannot cap a major bump once a commit is marked breaking. Consumers still need to learn what broke, so the `Migration:` footer carries that note into the changelog. The release flow exists and is proven (v1.0.0 to v1.3.0); this epic only types commits correctly, renders the footer and lets the merge happen once the checks hold. Pushing after each checkpoint keeps checkpointed commits in `main`; the pre-push count keeps a stray marker from ever reaching the release PR, because rewording pushed, checkpointed commits would orphan them.",
+      "sourceRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/manual-verification.md"
+        }
+      ],
+      "memoryDecisionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/distribution/2026-10-14-distribution-release-plz-tags-dist-releases.md"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": ".agentx/memory/decisions/distribution/2026-10-08-distribution-cargo-dist-and-axoupdater.md"
+        }
+      ]
+    }
+  ],
+  "memoryDecisionsConsidered": [
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-cli-surface-raw-app-arguments.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-embedded-playwright-package-template.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-fmt-per-member.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/app-pipeline/2026-10-08-app-pipeline-real-rayx-proof-uses-a-consistent-sibling-set.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-07-repository-memory-taxonomy.md"
+    },
+    {
+      "repositoryId": "rayx-cli",
+      "path": ".agentx/memory/decisions/repository/2026-10-08-repository-rayx-keeps-a-slim-xtask.md"
+    }
+  ]
+}

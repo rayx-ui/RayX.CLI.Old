@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 7,
+  "epicId": "rayx-cli-library-agnostic",
+  "revision": 2,
+  "planRevision": 3,
+  "specHashes": {
+    "requirements": "1253bb2be269b49082cec20c66f289d8de709e4d974fabe26b581bd791c11721",
+    "design": "119b483f0e4b9d896745b81fc93c47d0efce512ce35a84f0bf833fe5da60c996",
+    "plan": "bb9a20f705d2d67da214c4a22e12f22ff554c06fe717da5042df1fdbb1ec1c88"
+  },
+  "tasks": {
+    "t01-pin-sources": {
+      "status": "pending"
+    },
+    "t02-entry-dependencies": {
+      "status": "pending"
+    },
+    "t03-entry-lockfile": {
+      "status": "pending"
+    },
+    "t04-app-graph-patches": {
+      "status": "pending"
+    },
+    "t05-android-devkit": {
+      "status": "pending"
+    },
+    "t06-package-fonts": {
+      "status": "pending"
+    },
+    "t07-android-java-dirs": {
+      "status": "pending"
+    },
+    "t08-library-guard": {
+      "status": "pending"
+    },
+    "t09-contract-docs": {
+      "status": "pending"
+    },
+    "t10-release-pr": {
+      "status": "pending"
+    },
+    "t11-release-v2": {
+      "status": "pending"
+    },
+    "t12-mac-self-update": {
+      "status": "pending"
+    },
+    "t13-release-policy": {
+      "status": "pending"
+    },
+    "t14-web-host-page": {
+      "status": "pending"
+    }
+  },
+  "validationBatches": {},
+  "checkResults": {},
+  "reviews": {},
+  "checkpoints": {},
+  "findings": [],
+  "handoffMarkdown": "",
+  "protectedPaths": {
+    "rayx-cli": {
+      ".agentx/tasks/rayx-cli-foundation/**": "195289e41107bb67bba3ca4b2308e643cfd1821052238e1e3856f2546074b5f8",
+      ".agentx/tasks/rayx-cli-releases/**": "2de43a9ba0297ba54bfb3cb98dd758753fdedb9d42bad96ce5a78afaec66ee94",
+      ".agentx/tasks/rayx-cli-guests/**": "67d4082689a980e5ebe1aab403f3695a842a2a15ac07d9aa3d4fc8fc43d728e5",
+      ".agentx/tasks/rayx-cli-versions/**": "4afbab4283d6c900e49e97cdf3a5b5871dcd6383fe3ecca7d32c4c7cf57056ed",
+      ".github/workflows/release.yml": "3c495e29befb864e16b3035e5ed65f2527f0048ff06ce1a51e89927fcaeb8156",
+      ".github/workflows/release-plz.yml": "6149a12db54cd436f9b4bc64dc10caacf4ccfd14537fc83a854e69126944da5a",
+      ".github/workflows/ci.yml": "c8616f76e8c3d6e862a89d9925f316d0456a8db08ab8d51e11e0f6f6a02b1417",
+      "dist-workspace.toml": "b26e263d95f7bc675128ba73b3f747a55e8225134e1ae6c05e7d98ac8d36d279"
+    }
+  }
+}
