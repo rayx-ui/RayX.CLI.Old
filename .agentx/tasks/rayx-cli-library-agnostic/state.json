@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-library-agnostic",
-  "revision": 41,
+  "revision": 44,
   "planRevision": 3,
   "specHashes": {
     "requirements": "1253bb2be269b49082cec20c66f289d8de709e4d974fabe26b581bd791c11721",
@@ -64,16 +64,22 @@
       ]
     },
     "t10-release-pr": {
-      "status": "in_progress",
+      "status": "implemented",
       "workerIds": [
         "coordinator-9fea8079"
       ]
     },
     "t11-release-v2": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t12-mac-self-update": {
-      "status": "pending"
+      "status": "implemented",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t13-release-policy": {
       "status": "done",

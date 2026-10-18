@@ -364,3 +364,42 @@ the `rayx-cli-releases` epic; run them and record the results here):
   decision: RayX is fixed separately so it builds without that sibling; this repository does not
   work around it. Re-run `rayx-ui/RayX#2` after that fix; both jobs (Rust Workspace, WASM
   Playwright WebGPU) must pass.
+
+## Release v1.4.0 (2026-10-19, epic rayx-cli-library-agnostic POL-2, REL-1 to REL-3)
+
+The library-agnostic `rayx` shipped as the 1.x minor 1.4.0 under the 1.x policy.
+
+- **POL-2, local preview.** release-plz 0.3.172 on this Mac, `release-plz update` in a throwaway
+  `git worktree` of the local `main` (`3778063`, tags fetched; the worktree was removed and
+  nothing was committed) proposed `rayx-cli: 1.3.0 -> 1.4.0`. Its `CHANGELOG.md` section has no
+  `[**breaking**]` marker and prints each `Migration:` footer under its commit, for example:
+
+  ```text
+  - *(project)* resolve pins from the project or the built-in defaults only
+    Migration: a workspace that relied on the profile declares `android-platform`, `android-build-tools` and `android-ndk` in `[workspace.metadata.rayx]`.
+  - *(app)* --android-devkit requires the app's devkit feature
+    Migration: an app that uses `--android-devkit` defines a `devkit` feature.
+  ```
+- **REL-1, commits and the release PR.** The 19 commits `v1.3.0..cefab09` were pushed straight to
+  `main` (fetch, rebase, `--force-with-lease`; no feature branch, no implementation PR).
+  `git rev-list --count -E --grep='^[a-z]+(\([^)]*\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..origin/main`
+  printed `0`. release-plz's release PR rayx-ui/RayX.CLI#9 (`chore: release v1.4.0`) proposed
+  `1.4.0`, changed only `Cargo.toml`, `Cargo.lock` and `CHANGELOG.md`, and its section carried six
+  `Migration:` notes. Its first CI run failed on `windows-latest` in one unit test (a verbatim-prefix
+  path comparison, fixed in `test(app)` commit before the merge); the rerun on the refreshed head was
+  green.
+- **REL-2, merge and release.** Under the owner's blanket go-ahead (amendment 1, D) #9 was
+  squash-merged as `6528eb1` once CI (ubuntu, macOS, Windows, setup on three hosts, web tests) and
+  the Release build of all six targets were green. release-plz pushed `v1.4.0` and the Release
+  workflow (run 39172926483) finished green. `gh release view v1.4.0 --repo rayx-ui/RayX.CLI`: published,
+  not a draft or prerelease, with the six archives and their `.sha256` files, `sha256.sum`,
+  `rayx-cli-installer.sh`, `rayx-cli-installer.ps1`, `dist-manifest.json` and the source archive.
+- **REL-3, this Mac.** The installed `rayx 1.1.0` has no `--release` flag, so `rayx self update`
+  updated it to the latest release (`Updated rayx 1.1.0 -> 1.4.0.`); `rayx self update --release
+  1.4.0` then printed `rayx 1.4.0 is already installed.` and `rayx --version` prints `rayx 1.4.0`.
+  `rayx doctor` and `rayx doctor --json` in a workspace without `[workspace.metadata.rayx]` report
+  only the `default` source (no `gpux-checkout`; `android-34`, no build tools).
+
+Until RayX's switch epic `rayx-released-libraries` lands, local RayX app builds use
+`rayx self update --release 1.3.0` (accepted by the owner, amendment 1, D): with 1.4.0 and no
+`entry_dependencies` RayX's entry crates no longer depend on its crates.
