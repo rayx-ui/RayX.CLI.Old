@@ -5,6 +5,16 @@ All notable changes to `rayx` are documented in this file. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). It is generated from
 Conventional Commits by release-plz.
 
+## [1.4.1] - 2026-10-18
+
+### Documentation
+- *(verify)* record the rayx 1.4.0 release and the self update on this Mac
+- *(verify)* correct the 1.4.0 commit count
+
+### Fixes
+- *(app)* build the --android-devkit graph from the selection plus devkit
+- *(app)* enable the entry crate's own features for the selection
+
 ## [1.4.0] - 2026-10-18
 
 ### Build and CI
