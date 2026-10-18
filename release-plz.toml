@@ -14,7 +14,8 @@ changelog_update = true
 # The library target is an implementation detail, not a public API.
 semver_check = false
 # Only changes that reach users start a release; docs, tests, CI and agentx commits ride along in
-# the next one. A breaking change is written `feat!`, `fix!` or `perf!`.
+# the next one. rayx stays on 1.x: a break is a `feat`/`fix` commit with a `Migration:` footer,
+# never `!` or `BREAKING CHANGE:` (see docs/releasing.md).
 release_commits = "^(feat|fix|perf)"
 
 [[package]]
@@ -40,6 +41,10 @@ body = """
 {% else -%}
 - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
 {% endif -%}
+{%- for footer in commit.footers | default(value=[]) -%}
+{%- if footer.token == "Migration" %}  Migration: {{ footer.value }}
+{% endif -%}
+{%- endfor -%}
 {% endfor -%}
 {% endfor %}
 """
