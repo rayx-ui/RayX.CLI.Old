@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-library-agnostic",
-  "revision": 20,
+  "revision": 33,
   "planRevision": 3,
   "specHashes": {
     "requirements": "1253bb2be269b49082cec20c66f289d8de709e4d974fabe26b581bd791c11721",
@@ -40,10 +40,16 @@
       ]
     },
     "t06-package-fonts": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t07-android-java-dirs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t08-library-guard": {
       "status": "pending"
@@ -64,7 +70,10 @@
       "status": "pending"
     },
     "t14-web-host-page": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     }
   },
   "validationBatches": {
@@ -85,6 +94,15 @@
         }
       },
       "recordedAt": "2026-10-18T22:12:05Z"
+    },
+    "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b": {
+      "snapshot": {
+        "specHash": "6436d4ac76ab91de3d4e919755ed31961ecaf0ce3ce0a0cf22d4c57b5ff0fc9e",
+        "repositories": {
+          "rayx-cli": "3737b4e1004915f3e64e79f177e4a4cd1d7b3244421df1ee9c45c1f2e2e292f7"
+        }
+      },
+      "recordedAt": "2026-10-18T22:20:27Z"
     }
   },
   "checkResults": {
@@ -291,6 +309,142 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s2-entry-crates-final-0a836ff07de9.log",
       "logSha256": "c987ae02018f8010b321a3a90ef5d99562e36d9a42cf2cabf54ede86e38224d2",
       "inputsHash": "e3512a5e342c25b05da79a34d53e03bf4869207ed5724af86475ee7a266a0593"
+    },
+    "s3-assets-android/check-package-fonts/final": {
+      "checkId": "check-package-fonts",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "d70ac4a7a462ef72d43ade9080414f984405458e51b5bc86a34339a2567360ab",
+      "basisHash": "2f474f60b5c0521a3b690a24951ab875611e627b7b825ef5c438169e9a485bf3",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.3104,
+      "recordedAt": "2026-10-18T22:20:19Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-761350462159.log",
+      "logSha256": "466df12dab324ecadb204a159bcd8e689aeab3b105e7499cad300b5a2b32e210",
+      "inputsHash": "809923db2f060ed8aa6c17353c906c146df0118384bef011a04bd19a7d5c4bff"
+    },
+    "s3-assets-android/check-assets-existing-unit/final": {
+      "checkId": "check-assets-existing-unit",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "2fe91ca7fbbaa8269eeb27c51dfab5439e13333819ff08438d8c04290a5c0484",
+      "basisHash": "66e7a1159a22cf70ee1766253b2bd4942aaf5d4b088d9fd1466308c88e6101d3",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 56,
+      "durationSeconds": 0.7464,
+      "recordedAt": "2026-10-18T22:20:20Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-a5889de5a7c0.log",
+      "logSha256": "59ad2cec3256edd0d0f393c564bef26ffd8757cd3fa53091a50b55bdb122da1e",
+      "inputsHash": "809923db2f060ed8aa6c17353c906c146df0118384bef011a04bd19a7d5c4bff"
+    },
+    "s3-assets-android/check-app-project-assets/final": {
+      "checkId": "check-app-project-assets",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "77a3f07b23a42c9007f2a97d3cf92dae30230c770e79220318ea50a93c7fca27",
+      "basisHash": "0b355d41e28a7bd546aa2b3ec9b14b12c2ccdf0031fa6466ea0927e3d8d53a8a",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 2.0323,
+      "recordedAt": "2026-10-18T22:20:22Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-d2792f0f3042.log",
+      "logSha256": "711136fcd0869da426807407bb914b34b3acf687da579782c4bf8c4a68895ae3",
+      "inputsHash": "e0a0bded5a33ce3410e7fe33540385e331d94981fcd1ca3e5b0a30b452807647"
+    },
+    "s3-assets-android/check-android-java-dirs/final": {
+      "checkId": "check-android-java-dirs",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "39e602bdfdc9d36ef44b38f01a8072573e77cf555f7b8d03ef5761f421dc8de5",
+      "basisHash": "fa9c0a6ed32c9708d5c980bd6816c7dc6dc5276066c5c37f0054b62ed5f2a8a3",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 6,
+      "durationSeconds": 0.9777,
+      "recordedAt": "2026-10-18T22:20:23Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-632767363ceb.log",
+      "logSha256": "aed995bb437fa57cb132102346f7f17259718534f504c0b4014fe51e22653ee5",
+      "inputsHash": "521cf2d6e7cbfd973565972ec712dc3e71a91ee5c142d1911a2ea0793c7fd642"
+    },
+    "s3-assets-android/check-java-dirs-gradle/final": {
+      "checkId": "check-java-dirs-gradle",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "ae9aee0ea515171f3305be29cb581b6f1b98082894bc7338898be47b40bff054",
+      "basisHash": "f1b8e068ab537c64dcc71773aa341e924516bb9191e7525c95026176681db686",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 3,
+      "durationSeconds": 0.1948,
+      "recordedAt": "2026-10-18T22:20:23Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-d115f837f0a5.log",
+      "logSha256": "71117344494fda9f3361db198c80a235f291d589c66d660c9953d22e3c37c17b",
+      "inputsHash": "809923db2f060ed8aa6c17353c906c146df0118384bef011a04bd19a7d5c4bff"
+    },
+    "s3-assets-android/check-web-host-page/final": {
+      "checkId": "check-web-host-page",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "867ade4ef5b89a1f9cd2ffc07912da29805eb225cd0958d7e51d07f9758fe09a",
+      "basisHash": "86c4bf7443ff41f8adef60307a9d6ec60c170aabc9c4b6b6b8da4976390267dd",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 5,
+      "durationSeconds": 0.7868,
+      "recordedAt": "2026-10-18T22:20:24Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-bdc30f8fb981.log",
+      "logSha256": "7ed7064413f0701620f570663b7898be7510a4131bc430d7e347b8a524e5af01",
+      "inputsHash": "1f09aecdecb83145eb9c16a0c537b931224b34c887174a80befcfb477e550160"
+    },
+    "s3-assets-android/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "23126748b842fbceb362d60d96a23e4e5e7ccc96cb11f2f79b37ee70216d2044",
+      "basisHash": "b1c41629e455b4a90272612cbe6c53870b7177b8e2a7ac92aee0fee1c2bf9101",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2677,
+      "recordedAt": "2026-10-18T22:20:24Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-bc4955e9fc3c.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "79a5c5f81c103c356cf3731714de7ed512a7ba614b889d06430f964d81014ff4"
+    },
+    "s3-assets-android/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s3-assets-android",
+      "phase": "final",
+      "batchId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "definitionHash": "70b6208d2190ce2fc15e2a20d9dc28bd468d2aa96c39a9e2aaef6f1dc58a6c6b",
+      "basisHash": "b8a3fb46474213417b1e403c3abfd14903e90ff23ed14458cf2b9d05ba729b24",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 3.4355,
+      "recordedAt": "2026-10-18T22:20:27Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-4817dbf0030b.log",
+      "logSha256": "d008d6b4c74fcc988a502d0810006c955ef8026c1abe67423ee41b59e2b51181",
+      "inputsHash": "64021fe4f3ab408b4426b8f4b6175a72fb498034abf7b74df7ed313d56a677d8"
     }
   },
   "reviews": {
@@ -519,6 +673,148 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
       }
+    },
+    "s3-assets-android": {
+      "reviewerId": "reviewer-s3-6ssf7l",
+      "snapshotId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "criterionIds": [
+        "FONT-1",
+        "JAVA-1",
+        "JAVA-2",
+        "WEB-1",
+        "WEB-2"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1",
+            "WEB-1",
+            "WEB-2"
+          ],
+          "sha256": "fc9e01892161332b7ee0b77d6ba6b385b2db9d1fe65ae339a1515d6e35f896d9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/assets.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "sha256": "e330a22855f94c18d560ddd6e2bc2b3141ae52f70af57154be50f0b1ef493553"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/context.rs",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "sha256": "1673adb3253f4091effc199664dc9ff2bcc5cab08e2ec5f114b74b249cc29eb2"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/descriptor.rs",
+          "kind": "source",
+          "criterionIds": [
+            "JAVA-1",
+            "JAVA-2",
+            "WEB-1"
+          ],
+          "sha256": "ea6efe7aaca1b6050e9ac32dfdd982da191c4a741f872cef6aa02fb347b5b14c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "JAVA-1",
+            "JAVA-2"
+          ],
+          "sha256": "f2651678fff88d4abca53a5b581f38a44ec84a662b9482cb9a295141f39a7dde"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "JAVA-1",
+            "WEB-1",
+            "WEB-2"
+          ],
+          "sha256": "16ab6a7e2534222cf678b153aa5cdbbdc8c6bbe26589122ce77d5e9cba767972"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/fixtures/app-workspace/crates/demo_fonts/rayx.assets.toml",
+          "kind": "source",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "sha256": "925671d2041da6412ebd027f32e9e63518d8c9219b67c95ab8766a2617ad489f"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "kind": "test",
+          "criterionIds": [
+            "FONT-1",
+            "WEB-1",
+            "WEB-2"
+          ],
+          "sha256": "fc9e01892161332b7ee0b77d6ba6b385b2db9d1fe65ae339a1515d6e35f896d9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_project.rs",
+          "kind": "test",
+          "criterionIds": [
+            "FONT-1"
+          ],
+          "sha256": "cd071e107ce2ba6b1b9bce08813775d46e16dd6bc0612b17e7d23d95a73e1b80"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "JAVA-1"
+          ],
+          "sha256": "f2651678fff88d4abca53a5b581f38a44ec84a662b9482cb9a295141f39a7dde"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_android_java_dirs.rs",
+          "kind": "test",
+          "criterionIds": [
+            "JAVA-1",
+            "JAVA-2"
+          ],
+          "sha256": "a4e2cb1c73f34a06b7153ad3d2496955919b82bceae29eac8ea1a437316087e8"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_web_host_page.rs",
+          "kind": "test",
+          "criterionIds": [
+            "WEB-1",
+            "WEB-2"
+          ],
+          "sha256": "97197e6cac59d630605af77707a7e2f72885c6a49f2ccb2e768df8b9686ec9d6"
+        }
+      ],
+      "summaryMarkdown": "All five criteria are met. Fonts stage once through the ordinary package-asset path with the name lookup, extra root and `resolved_package_dir` deleted; the app's `platform/web/index.html` or the neutral fallback is rendered before `cargo build` with exactly the three placeholders (adjacent ones included) and unknown tokens refused with token, path and line; `android_java_dirs` come from the graph the build compiles (including the `devkit` feature under `--android-devkit`), validated, sorted, deduplicated and passed as `-PrayxAndroidJavaDirs` only when declared. Each task has its own new test group. Findings S3-JAVA-DEVKIT-FEATURES and S3-WEB-ADJACENT-PLACEHOLDERS are resolved with regression tests.",
+      "findingIds": [
+        "S3-JAVA-DEVKIT-FEATURES",
+        "S3-WEB-ADJACENT-PLACEHOLDERS"
+      ],
+      "recordedAt": "2026-10-18T22:21:06Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
+      }
     }
   },
   "checkpoints": {
@@ -537,6 +833,14 @@
       },
       "reviewHash": "ad65727f1996cff1ff4e4111cdc9d31141e30baf1a23dd18b55b8dde14d633b0",
       "recordedAt": "2026-10-18T22:13:21Z"
+    },
+    "s3-assets-android": {
+      "snapshotId": "856bd9328dae3e1e2b9dd07e8c496eb2176000b6ea3dc0ab3902c8fc7dd22e1b",
+      "commits": {
+        "rayx-cli": "4223deb91b57f30bc6a95aa3cd098f4a9ae4cdaf"
+      },
+      "reviewHash": "9382177365f54f16536656102fbfbe66054789fdb697caf0d2ed1ddd2e108d40",
+      "recordedAt": "2026-10-18T22:22:15Z"
     }
   },
   "findings": [
@@ -556,6 +860,51 @@
         }
       ],
       "boundaryId": "s2-entry-crates"
+    },
+    {
+      "id": "S3-JAVA-DEVKIT-FEATURES",
+      "boundaryId": "s3-assets-android",
+      "criterionIds": [
+        "JAVA-1",
+        "JAVA-2"
+      ],
+      "severity": "major",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** `android_java_dirs` are collected from the app's graph for the features the Android build actually enables (JAVA-1: 'for the selected features'; d-android-java-dirs: only the graph for the selected features contributes, and it is the graph cargo builds).\n\n**Observed:** `build_android_app_with_toolchain` (src/app/android.rs) calls `app.android_java_dirs(features)` with the user's selection, but with `--android-devkit` the cargo-ndk build adds `--features devkit` (same function, `if options.devkit`). An app's `devkit` feature typically enables a dependency (RayX apps: `devkit = [\"dep:rayx_devkit\"]`), so a package reached only through `devkit` is compiled into the native library while its declared Java directories are not passed to Gradle: the JNI classes it needs are missing from the APK. Conversely the graph used for Java dirs differs from the graph that was built.\n\n**Repair:** compute the Java dirs from the selection the build uses: when `options.devkit`, pass a clone of `features` with `devkit` added (one helper used by both the cargo-ndk feature flag and `android_java_dirs`). Add a case to `tests/app_android_java_dirs.rs` or `java_dirs_gradle_tests`: a fixture package behind the app's `devkit` feature that declares a Java dir is included in the Gradle property for a devkit build and absent otherwise.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "built_feature_selection"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "symbol": "java_dirs_gradle_tests::a_devkit_build_collects_the_directories_its_devkit_feature_reaches"
+        }
+      ]
+    },
+    {
+      "id": "S3-WEB-ADJACENT-PLACEHOLDERS",
+      "boundaryId": "s3-assets-android",
+      "criterionIds": [
+        "WEB-1"
+      ],
+      "severity": "minor",
+      "status": "resolved",
+      "descriptionMarkdown": "**Expected:** each of the three placeholders is replaced wherever it occurs (WEB-1), only an unknown `__RAYX_<NAME>__` token is refused.\n\n**Observed:** `substitute_page` (src/app/wasm.rs) takes the token to end at the *last* `__` of the `[A-Z0-9_]` run, so two placeholders written back to back (`__RAYX_TITLE____RAYX_DIAGNOSTICS__`) or a placeholder followed by an uppercase/underscore run containing `__` (`__RAYX_TITLE__ABC__`) is refused as one unknown token instead of being replaced.\n\n**Repair:** at each `__RAYX_` first try the known placeholders as prefixes (`rest[start..].starts_with(name)`); only when none matches, report the shortest `__RAYX_<NAME>__` token (first `__` after at least one name character). Add a unit case for adjacent placeholders.",
+      "regressionRefs": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "symbol": "substitute_page"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/wasm.rs",
+          "symbol": "tests::adjacent_placeholders_are_each_replaced"
+        }
+      ]
     }
   ],
   "handoffMarkdown": "",
