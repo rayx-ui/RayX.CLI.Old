@@ -380,7 +380,7 @@ The library-agnostic `rayx` shipped as the 1.x minor 1.4.0 under the 1.x policy.
   - *(app)* --android-devkit requires the app's devkit feature
     Migration: an app that uses `--android-devkit` defines a `devkit` feature.
   ```
-- **REL-1, commits and the release PR.** The 19 commits `v1.3.0..cefab09` were pushed straight to
+- **REL-1, commits and the release PR.** The 18 commits `v1.3.0..cefab09` were pushed straight to
   `main` (fetch, rebase, `--force-with-lease`; no feature branch, no implementation PR).
   `git rev-list --count -E --grep='^[a-z]+(\([^)]*\))?!:' --grep='^BREAKING[ -]CHANGE:' v1.3.0..origin/main`
   printed `0`. release-plz's release PR rayx-ui/RayX.CLI#9 (`chore: release v1.4.0`) proposed
