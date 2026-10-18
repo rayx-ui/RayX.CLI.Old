@@ -5,6 +5,34 @@ All notable changes to `rayx` are documented in this file. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). It is generated from
 Conventional Commits by release-plz.
 
+## [1.4.0] - 2026-10-18
+
+### Build and CI
+- *(release)* print Migration footers in the changelog
+
+### Documentation
+- *(repository)* state the library-agnostic rule
+- *(app)* document entry_dependencies, android_java_dirs, lockfile seeding and the 1.4 migration
+- *(release)* stay on 1.x and carry migration notes in Migration footers
+
+### Features
+- *(project)* resolve pins from the project or the built-in defaults only
+  Migration: a workspace that relied on the profile declares `android-platform`, `android-build-tools` and `android-ndk` in `[workspace.metadata.rayx]`.
+- *(app)* generate entry crates from entry_dependencies, the project lock and the app's graph
+  Migration: list the crates the app's `main.rs` uses directly in `[package.metadata.rayx] entry_dependencies`.
+  Migration: a crate that needs `branches/std` (or any other feature) declares it itself instead of relying on the web entry crate.
+- *(app)* --android-devkit requires the app's devkit feature
+  Migration: an app that uses `--android-devkit` defines a `devkit` feature.
+- *(app)* fonts come only through package assets
+  Migration: a package that ships fonts declares them as a package asset (`[package.metadata.rayx.assets] manifest = "rayx.assets.toml"` with `kind = "fonts"`, `namespace = ""`, `roots = ["assets"]`); an app in explicit `[package_assets]` mode adds its id to `include`.
+- *(app)* pass the Android Java directories packages declare to Gradle
+- *(app)* the web page is the app's platform/web/index.html
+  Migration: an app that relied on the generated diagnostics page adds `platform/web/index.html` using `__RAYX_MODULE__`, `__RAYX_TITLE__` and `__RAYX_DIAGNOSTICS__`.
+
+### Tests
+- guard that rayx names and depends on no gpux or RayX library
+- *(app)* compare the devkit build's Java directory in the spelling rayx returns
+
 ## [1.3.0] - 2026-10-15
 
 ### Documentation
