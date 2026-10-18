@@ -295,11 +295,6 @@ impl Project {
     pub fn package(&self, name: &str) -> Option<&Package> {
         self.packages.iter().find(|package| package.name == name)
     }
-
-    /// Whether this is a gpux checkout: a workspace that contains the `gpux-testkit` package.
-    pub fn is_gpux_checkout(&self) -> bool {
-        self.package("gpux-testkit").is_some()
-    }
 }
 
 /// The `[dependencies]` of a manifest, for when cargo cannot report them. Inherited

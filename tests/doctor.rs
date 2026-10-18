@@ -154,7 +154,7 @@ fn pins_show_where_each_came_from() {
     });
     env.pins.android_platform = Pin {
         value: "android-36".into(),
-        source: PinSource::GpuxCheckout,
+        source: PinSource::Project,
     };
     let report = report(
         &env,
@@ -163,11 +163,11 @@ fn pins_show_where_each_came_from() {
     );
     let json = report.to_json();
     assert_eq!(json["pins"]["rust-toolchain"]["source"], "project");
-    assert_eq!(json["pins"]["android-platform"]["source"], "gpux-checkout");
+    assert_eq!(json["pins"]["android-platform"]["source"], "project");
     let text = report.to_text();
     assert!(text.contains("rust-toolchain: 1.95.0 (project)"), "{text}");
     assert!(
-        text.contains("android-platform: android-36 (gpux-checkout)"),
+        text.contains("android-platform: android-36 (project)"),
         "{text}"
     );
     assert!(text.contains("node: 22 (default)"), "{text}");

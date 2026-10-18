@@ -365,7 +365,7 @@ fn pinned_build_tools_the_pinned_ndk_and_the_host_architecture_shape_the_package
     let mut env = env(os, Arch::Arm64, false, false);
     env.pins.android_build_tools = Some(Pin {
         value: "36.0.0".into(),
-        source: PinSource::GpuxCheckout,
+        source: PinSource::Project,
     });
     let machine = with_sdk(
         machine(os).with_file("/opt/homebrew/bin/brew"),
@@ -677,16 +677,16 @@ fn emulator_log_lines_are_not_avds() {
 fn the_system_image_and_the_avd_follow_the_platform_pin() {
     use rayx_cli::project::PinSource;
 
-    // The gpux profile pins android-36: the image and the AVD are android-36 too.
+    // A project that pins android-36: the image and the AVD are android-36 too.
     let os = Os::Linux;
     let mut env = env(os, Arch::X64, false, false);
     env.pins.android_platform = Pin {
         value: "android-36".into(),
-        source: PinSource::GpuxCheckout,
+        source: PinSource::Project,
     };
     env.pins.android_system_image = Pin {
         value: "android-36;google_apis".into(),
-        source: PinSource::GpuxCheckout,
+        source: PinSource::Project,
     };
     let machine = with_sdk(machine(os), os, &[]).with_dir(sdk_dir(os));
     let (_, text) = check(&env, &machine, &mut runner(os));

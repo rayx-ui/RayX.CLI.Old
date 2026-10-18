@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use rayx_cli::host::{Outcome, Runner};
-use rayx_cli::project::pins::{DEFAULTS, GPUX_CHECKOUT};
+use rayx_cli::project::pins::DEFAULTS;
 use rayx_cli::project::{Discovery, PinSource, Pins, Project, ProjectError};
 
 fn repo() -> PathBuf {
@@ -190,26 +190,7 @@ fn defaults_apply_outside_any_project() {
 }
 
 #[test]
-fn a_gpux_checkout_that_declares_nothing_uses_the_gpux_profile_for_android() {
-    let project = discover(&fixture("gpux-checkout"), None).expect("discovers");
-    assert!(project.is_gpux_checkout());
-    let pins = Pins::resolve(Some(&project));
-
-    assert_eq!(pins.android_platform.value, GPUX_CHECKOUT.android_platform);
-    assert_eq!(pins.android_platform.value, "android-36");
-    assert_eq!(pins.android_platform.source, PinSource::GpuxCheckout);
-    let build_tools = pins.android_build_tools.expect("gpux pins build tools");
-    assert_eq!(build_tools.value, "36.0.0");
-    assert_eq!(build_tools.source.as_str(), "gpux-checkout");
-    assert_eq!(pins.android_ndk.value, "28.0.12674087");
-    assert_eq!(pins.android_ndk.source, PinSource::GpuxCheckout);
-    // Pins the gpux profile does not cover still come from the defaults.
-    assert_eq!(pins.node.source, PinSource::Default);
-    assert_eq!(pins.web_toolchain.value, "nightly-2026-06-23");
-}
-
-#[test]
-fn project_metadata_beats_the_gpux_profile() {
+fn declared_android_pins_come_from_the_project_and_the_rest_from_the_defaults() {
     let dir = tempfile::tempdir().expect("temp dir");
     fs::create_dir_all(dir.path().join("tooling/testkit/src")).expect("dirs");
     fs::write(
@@ -219,7 +200,7 @@ fn project_metadata_beats_the_gpux_profile() {
     .expect("manifest");
     fs::write(
         dir.path().join("tooling/testkit/Cargo.toml"),
-        "[package]\nname = \"gpux-testkit\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+        "[package]\nname = \"testkit\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
     )
     .expect("member manifest");
     fs::write(dir.path().join("tooling/testkit/src/lib.rs"), "").expect("lib");
@@ -228,7 +209,9 @@ fn project_metadata_beats_the_gpux_profile() {
     let pins = Pins::resolve(Some(&project));
     assert_eq!(pins.android_platform.value, "android-35");
     assert_eq!(pins.android_platform.source, PinSource::Project);
-    assert_eq!(pins.android_ndk.source, PinSource::GpuxCheckout);
+    assert_eq!(pins.android_ndk.value, DEFAULTS.android_ndk);
+    assert_eq!(pins.android_ndk.source, PinSource::Default);
+    assert!(pins.android_build_tools.is_none());
 }
 
 #[test]
@@ -289,11 +272,10 @@ fn discovery_asks_rustup_not_to_install_anything() {
 #[test]
 fn without_a_working_cargo_the_manifests_still_identify_the_project() {
     // A fresh machine: cargo does not run at all.
-    for (name, gpux) in [("pinned-app", false), ("gpux-checkout", true)] {
+    for name in ["pinned-app", "plain-app"] {
         let mut runner = Runner::record().respond(|_| true, Outcome::failure(127));
         let project = Project::discover(&mut runner, &fixture(name), None).expect("from files");
         assert_eq!(project.discovery, Discovery::Files, "{name}");
-        assert_eq!(project.is_gpux_checkout(), gpux, "{name}");
     }
     let mut runner = Runner::record().respond(|_| true, Outcome::failure(127));
     let project = Project::discover(&mut runner, &fixture("pinned-app"), None).expect("from files");

@@ -3,9 +3,7 @@
 //! Pins belong to the project. They resolve in this order and each carries its source:
 //!
 //! 1. the project: `Cargo.lock`, `rust-toolchain.toml` and `[workspace.metadata.rayx]`;
-//! 2. the gpux-checkout profile, for a workspace that contains `gpux-testkit` and declares
-//!    nothing for that pin;
-//! 3. the built-in defaults in [`DEFAULTS`], the only place a default version is written.
+//! 2. the built-in defaults in [`DEFAULTS`], the only place a default version is written.
 
 use std::fmt;
 use std::path::Path;
@@ -17,8 +15,6 @@ use super::Project;
 pub enum PinSource {
     /// The project's own files.
     Project,
-    /// The gpux checkout's profile.
-    GpuxCheckout,
     /// The CLI's built-in default.
     Default,
 }
@@ -27,7 +23,6 @@ impl PinSource {
     pub fn as_str(self) -> &'static str {
         match self {
             PinSource::Project => "project",
-            PinSource::GpuxCheckout => "gpux-checkout",
             PinSource::Default => "default",
         }
     }
@@ -55,8 +50,8 @@ impl Pin {
     }
 }
 
-/// The built-in defaults. They equal the pins RayX and Gpux use; move them together with the RayX
-/// skill reference `wasm-toolchain-update.md`.
+/// The built-in defaults. Move the toolchain defaults together with the checklist
+/// `wasm-toolchain-update.md`.
 pub struct Defaults {
     pub web_toolchain: &'static str,
     pub node: &'static str,
@@ -84,20 +79,6 @@ pub const DEFAULTS: Defaults = Defaults {
     android_ndk_api: "31",
     android_image_tag: "google_apis",
     ubuntu: "24.04",
-};
-
-/// What a gpux checkout pins for Android (its lane E).
-pub struct GpuxProfile {
-    pub android_platform: &'static str,
-    pub android_build_tools: &'static str,
-    pub android_ndk: &'static str,
-}
-
-/// The gpux-checkout profile, for a workspace that contains `gpux-testkit`.
-pub const GPUX_CHECKOUT: GpuxProfile = GpuxProfile {
-    android_platform: "android-36",
-    android_build_tools: "36.0.0",
-    android_ndk: "28.0.12674087",
 };
 
 /// Every version `setup`, `doctor` and the app pipeline need, with where each came from.
@@ -128,16 +109,12 @@ impl Pins {
     pub fn resolve(project: Option<&Project>) -> Pins {
         let metadata = project.and_then(|p| p.rayx_metadata.as_ref());
         let key = |name: &str| metadata.and_then(|table| string_value(table.get(name)));
-        let gpux = project.is_some_and(Project::is_gpux_checkout);
 
-        // A key from the project, else the gpux profile (when it has one), else the default.
-        let pin = |name: &str, gpux_value: Option<&str>, default: &str| -> Pin {
-            if let Some(value) = key(name) {
-                Pin::new(value, PinSource::Project)
-            } else if let (true, Some(value)) = (gpux, gpux_value) {
-                Pin::new(value, PinSource::GpuxCheckout)
-            } else {
-                Pin::new(default, PinSource::Default)
+        // A key from the project, else the default.
+        let pin = |name: &str, default: &str| -> Pin {
+            match key(name) {
+                Some(value) => Pin::new(value, PinSource::Project),
+                None => Pin::new(default, PinSource::Default),
             }
         };
 
@@ -151,36 +128,20 @@ impl Pins {
             None => (None, None),
         };
 
-        let android_platform = pin(
-            "android-platform",
-            Some(GPUX_CHECKOUT.android_platform),
-            DEFAULTS.android_platform,
-        );
+        let android_platform = pin("android-platform", DEFAULTS.android_platform);
 
         Pins {
             wasm_bindgen,
             rust_toolchain,
-            web_toolchain: pin("web-toolchain", None, DEFAULTS.web_toolchain),
-            node: pin("node", None, DEFAULTS.node),
-            jdk: pin("jdk", None, DEFAULTS.jdk),
-            playwright: pin("playwright", None, DEFAULTS.playwright),
-            android_ndk: pin(
-                "android-ndk",
-                Some(GPUX_CHECKOUT.android_ndk),
-                DEFAULTS.android_ndk,
-            ),
+            web_toolchain: pin("web-toolchain", DEFAULTS.web_toolchain),
+            node: pin("node", DEFAULTS.node),
+            jdk: pin("jdk", DEFAULTS.jdk),
+            playwright: pin("playwright", DEFAULTS.playwright),
+            android_ndk: pin("android-ndk", DEFAULTS.android_ndk),
             android_platform: android_platform.clone(),
-            android_build_tools: if let Some(value) = key("android-build-tools") {
-                Some(Pin::new(value, PinSource::Project))
-            } else if gpux {
-                Some(Pin::new(
-                    GPUX_CHECKOUT.android_build_tools,
-                    PinSource::GpuxCheckout,
-                ))
-            } else {
-                None
-            },
-            android_ndk_api: pin("android-ndk-api", None, DEFAULTS.android_ndk_api),
+            android_build_tools: key("android-build-tools")
+                .map(|v| Pin::new(v, PinSource::Project)),
+            android_ndk_api: pin("android-ndk-api", DEFAULTS.android_ndk_api),
             // Unless set explicitly, the image is at the platform pin, whose source it reports.
             android_system_image: match key("android-system-image") {
                 Some(value) => Pin::new(value, PinSource::Project),
