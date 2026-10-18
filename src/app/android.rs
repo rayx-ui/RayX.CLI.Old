@@ -82,6 +82,7 @@ pub fn build(
 ) -> Result<()> {
     let options = take_android_build_options(&mut args, profile)?;
     ensure_empty(&args)?;
+    ensure_devkit_contract(app, &options)?;
     build_android_app(app, features, profile, options)
 }
 
@@ -102,6 +103,7 @@ pub fn deploy(
 ) -> Result<()> {
     let options = take_android_build_options(&mut args, profile)?;
     ensure_empty(&args)?;
+    ensure_devkit_contract(app, &options)?;
     deploy_android_app(app, features, profile, options)
 }
 
@@ -113,6 +115,7 @@ pub fn pack(
 ) -> Result<()> {
     let options = take_android_build_options(&mut args, profile)?;
     ensure_empty(&args)?;
+    ensure_devkit_contract(app, &options)?;
     let toolchain = setup_android_machine(&app.context.pins)?;
     let targets = select_android_build_targets(&toolchain, &options)?;
     build_android_app_with_toolchain(app, features, profile, &options, &toolchain, &targets)?;
@@ -126,6 +129,18 @@ pub fn pack(
     );
     fs::copy(&apk_path, &destination)?;
     println!("Packed Android APK at {}", destination.display());
+    Ok(())
+}
+
+/// `--android-devkit` builds the entry crate with `--features devkit`, so the app must define a
+/// `devkit` feature; checked before any toolchain, cargo or Gradle step.
+fn ensure_devkit_contract(app: &AppDescriptor, options: &AndroidBuildOptions) -> Result<()> {
+    if options.devkit && !app.has_feature("devkit")? {
+        bail!(
+            "--android-devkit needs a `devkit` feature in {}: the bridge builds the app with `--features devkit` and `RAYX_ANDROID_DEVKIT_PORT`",
+            app.manifest().display()
+        );
+    }
     Ok(())
 }
 
@@ -467,7 +482,7 @@ fn install_android_devkit_bridge(
     options: &AndroidBuildOptions,
 ) -> Result<()> {
     let port = options.devkit_port();
-    println!("Configuring Android RayX DevKit bridge on 127.0.0.1:{port}");
+    println!("Configuring the Android DevKit bridge on 127.0.0.1:{port}");
 
     remove_android_forward(toolchain, device, port);
     let mut forward = android_adb_command(toolchain, Some(device));
@@ -476,18 +491,20 @@ fn install_android_devkit_bridge(
 
     wait_for_android_devkit(port)?;
     let registry_path = write_android_devkit_registration(app, toolchain, device, options)?;
-    println!(
-        "RayX DevKit registration written to {}",
-        registry_path.display()
-    );
-    println!(
-        "Inspect with: cargo run -p rayx_devkit_mcp -- --connect auto --registry-dir {}",
-        registry_path
-            .parent()
-            .map(Path::display)
-            .ok_or_else(|| anyhow!("invalid DevKit registry path"))?
-    );
+    println!("{}", devkit_registration_message(&registry_path)?);
     Ok(())
+}
+
+/// Where the bridge registration went: the file and its registry directory, nothing else.
+fn devkit_registration_message(registry_path: &Path) -> Result<String> {
+    let registry_dir = registry_path
+        .parent()
+        .ok_or_else(|| anyhow!("invalid DevKit registry path"))?;
+    Ok(format!(
+        "DevKit registration written to {}\nRegistry directory: {}",
+        registry_path.display(),
+        registry_dir.display()
+    ))
 }
 
 fn remove_android_forward(toolchain: &AndroidToolchain, device: &str, port: u16) {
@@ -523,7 +540,7 @@ fn wait_for_android_devkit(port: u16) -> Result<()> {
         }
     }
 
-    bail!("RayX DevKit connector did not become reachable at {endpoint}");
+    bail!("the DevKit bridge did not become reachable at {endpoint}");
 }
 
 fn write_android_devkit_registration(
@@ -1847,5 +1864,81 @@ edition = "2024"
         ));
         fs::create_dir_all(&root)?;
         Ok(root)
+    }
+}
+
+/// `--android-devkit` is the CLI's bridge contract: it needs the app's own `devkit` feature and
+/// reports only where the registration went.
+#[cfg(test)]
+mod devkit_contract_tests {
+    use super::*;
+    use crate::app::test_support::FixtureWorkspace;
+
+    type Action = fn(&AppDescriptor, &AppFeatureSelection, BuildProfile, Vec<String>) -> Result<()>;
+
+    fn devkit_args() -> Vec<String> {
+        vec!["--android-devkit".to_string()]
+    }
+
+    #[test]
+    fn every_android_devkit_action_fails_before_the_toolchain_without_a_devkit_feature() {
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        assert!(!app.has_feature("devkit").expect("manifest"));
+        let features = AppFeatureSelection::default();
+        let actions: [(&str, Action); 4] = [
+            ("build", build),
+            ("run", run),
+            ("deploy", deploy),
+            ("pack", pack),
+        ];
+        for (name, action) in actions {
+            let error = action(&app, &features, BuildProfile::Release, devkit_args())
+                .expect_err("no devkit feature");
+            let text = format!("{error:#}");
+            assert!(text.contains("`devkit` feature"), "{name}: {text}");
+            assert!(
+                text.contains(&app.manifest().display().to_string()),
+                "{name}: {text}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_app_with_a_devkit_feature_passes_and_builds_with_it() {
+        let workspace = FixtureWorkspace::new();
+        let manifest = workspace.root.join("apps/demo/Cargo.toml");
+        let text = fs::read_to_string(&manifest).expect("manifest");
+        fs::write(
+            &manifest,
+            text.replace("[features]\n", "[features]\ndevkit = [\"dep:inspector\"]\n"),
+        )
+        .expect("write");
+        let app = workspace.app();
+        let mut args = devkit_args();
+        let options = take_android_build_options(&mut args, BuildProfile::Release).expect("opts");
+        assert!(options.devkit);
+        ensure_devkit_contract(&app, &options).expect("the app defines devkit");
+
+        // Without `--android-devkit` nothing is required.
+        let workspace = FixtureWorkspace::new();
+        let app = workspace.app();
+        ensure_devkit_contract(&app, &AndroidBuildOptions::default()).expect("no bridge asked");
+    }
+
+    #[test]
+    fn the_bridge_message_names_only_the_registration_and_its_directory() {
+        for dir in [
+            std::env::temp_dir().join("rayx-devkit-android"),
+            PathBuf::from("/custom/registry"),
+        ] {
+            let file = dir.join("demo-android-42-47123.json");
+            let message = devkit_registration_message(&file).expect("message");
+            assert!(message.contains(&file.display().to_string()), "{message}");
+            assert!(message.contains(&dir.display().to_string()), "{message}");
+            for absent in ["cargo", "run -p", "mcp", "RayX DevKit", "rayx_devkit"] {
+                assert!(!message.contains(absent), "{absent} in {message}");
+            }
+        }
     }
 }
