@@ -725,6 +725,60 @@ mod rayx_app_main;
         manifest_has_feature(&self.manifest(), feature)
     }
 
+    /// `[package.metadata.rayx] android_java_dirs` of every package in the app's graph for
+    /// `features` (the app included): absolute, deduplicated and sorted. Each entry is relative to
+    /// the declaring package's directory and must be an existing directory inside it.
+    pub fn android_java_dirs(&self, features: &AppFeatureSelection) -> Result<Vec<PathBuf>> {
+        let graph = AppGraph::resolve(&self.manifest(), &features.metadata_context())?;
+        let mut dirs = BTreeSet::new();
+        for package in &graph.packages {
+            let Some(value) = package
+                .metadata
+                .get("rayx")
+                .and_then(|rayx| rayx.get("android_java_dirs"))
+            else {
+                continue;
+            };
+            let entries = value
+                .as_array()
+                .and_then(|items| items.iter().map(|item| item.as_str()).collect::<Option<Vec<_>>>())
+                .ok_or_else(|| {
+                    anyhow!(
+                        "package {} (package.metadata.rayx.android_java_dirs in {}) must be an array of relative directories",
+                        package.name,
+                        package.manifest_path.display()
+                    )
+                })?;
+            let package_dir = fs::canonicalize(package.dir())
+                .with_context(|| format!("resolving {}", package.dir().display()))?;
+            for entry in entries {
+                let invalid = |reason: &str| {
+                    anyhow!(
+                        "package {} declares android_java_dirs entry `{entry}`, which {reason} ({})",
+                        package.name,
+                        package.manifest_path.display()
+                    )
+                };
+                if Path::new(entry).is_absolute()
+                    || entry.starts_with('/')
+                    || entry.starts_with('\\')
+                {
+                    return Err(invalid("is absolute; entries are relative to the package"));
+                }
+                let dir = fs::canonicalize(package_dir.join(entry))
+                    .map_err(|_| invalid("does not exist"))?;
+                if !dir.starts_with(&package_dir) {
+                    return Err(invalid("leaves the package directory"));
+                }
+                if !dir.is_dir() {
+                    return Err(invalid("is not a directory"));
+                }
+                dirs.insert(command_path(&dir));
+            }
+        }
+        Ok(dirs.into_iter().collect())
+    }
+
     pub fn android_launch_component(&self) -> Result<String> {
         let application_id = self.android_application_id.as_deref().ok_or_else(|| {
             anyhow!(
@@ -923,6 +977,19 @@ fn rayx_metadata(value: &Value) -> Option<&Value> {
         .get("package")
         .and_then(|package| package.get("metadata"))
         .and_then(|metadata| metadata.get("rayx"))
+}
+
+/// The Gradle property for the Android Java directories: `-PrayxAndroidJavaDirs=<dirs joined by
+/// the platform path separator>`, `None` without directories.
+pub fn android_java_dirs_property(dirs: &[PathBuf]) -> Result<Option<String>> {
+    if dirs.is_empty() {
+        return Ok(None);
+    }
+    let joined = std::env::join_paths(dirs).context("joining the Android Java directories")?;
+    Ok(Some(format!(
+        "-PrayxAndroidJavaDirs={}",
+        joined.to_string_lossy()
+    )))
 }
 
 /// The root manifest's `[patch.<registry or URL>]` entries whose patched package (`package`,

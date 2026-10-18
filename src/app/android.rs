@@ -4,7 +4,7 @@ use crate::app::fs_util::{
     absolutize_path, collect_files_named, collect_files_with_extension, command_path, reset_dir,
 };
 use crate::app::process::{command_succeeds, run as run_process};
-use crate::app::{AppDescriptor, AppFeatureSelection, BuildProfile};
+use crate::app::{AppDescriptor, AppFeatureSelection, BuildProfile, android_java_dirs_property};
 use crate::project::Pins;
 use anyhow::{Context, Result, anyhow, bail};
 use std::fs;
@@ -130,6 +130,19 @@ pub fn pack(
     fs::copy(&apk_path, &destination)?;
     println!("Packed Android APK at {}", destination.display());
     Ok(())
+}
+
+/// The features the native build compiles: the selection, plus `devkit` for `--android-devkit`
+/// (the native build adds `--features devkit`).
+fn built_feature_selection(
+    features: &AppFeatureSelection,
+    options: &AndroidBuildOptions,
+) -> AppFeatureSelection {
+    let mut selection = features.clone();
+    if options.devkit && !selection.all_features {
+        selection.features.push("devkit".to_string());
+    }
+    selection
 }
 
 /// `--android-devkit` builds the entry crate with `--features devkit`, so the app must define a
@@ -308,6 +321,10 @@ fn build_android_app_with_toolchain(
     toolchain: &AndroidToolchain,
     targets: &[AndroidBuildTarget],
 ) -> Result<()> {
+    // The Java sources packages in the app's graph declare, validated before anything builds.
+    let java_dirs_property = android_java_dirs_property(
+        &app.android_java_dirs(&built_feature_selection(features, options))?,
+    )?;
     let unstripped_jni_libs_dir = app.temp_root()?.join("android").join("jniLibs-unstripped");
     let packaged_jni_libs_dir = app.android_generated_jni_dir()?;
     reset_dir(&unstripped_jni_libs_dir)?;
@@ -373,7 +390,7 @@ fn build_android_app_with_toolchain(
         .arg("--no-daemon")
         .arg("--warning-mode=fail")
         .arg("--rerun-tasks");
-    apply_android_gradle_properties(&mut gradle_cmd, options);
+    apply_android_gradle_properties(&mut gradle_cmd, options, java_dirs_property.as_deref());
     apply_android_env(&mut gradle_cmd, toolchain);
     run_process(&mut gradle_cmd)
 }
@@ -915,7 +932,14 @@ fn apply_android_release_profile_overrides(command: &mut Command, options: &Andr
     }
 }
 
-fn apply_android_gradle_properties(command: &mut Command, options: &AndroidBuildOptions) {
+fn apply_android_gradle_properties(
+    command: &mut Command,
+    options: &AndroidBuildOptions,
+    java_dirs_property: Option<&str>,
+) {
+    if let Some(property) = java_dirs_property {
+        command.arg(property);
+    }
     if let Some(value) = options.minify.or(options.size_optimized.then_some(true)) {
         command.arg(format!("-PrayxAndroidMinify={value}"));
     }
@@ -1940,5 +1964,83 @@ mod devkit_contract_tests {
                 assert!(!message.contains(absent), "{absent} in {message}");
             }
         }
+    }
+}
+
+/// The Gradle build carries the Java directories packages declare, and nothing without them.
+#[cfg(test)]
+mod java_dirs_gradle_tests {
+    use super::*;
+
+    fn gradle_args(property: Option<&str>) -> Vec<String> {
+        let mut command = Command::new("gradle");
+        apply_android_gradle_properties(&mut command, &AndroidBuildOptions::default(), property);
+        command
+            .get_args()
+            .map(|arg| arg.to_string_lossy().into_owned())
+            .collect()
+    }
+
+    #[test]
+    fn declared_directories_reach_the_gradle_command_as_one_property() -> Result<()> {
+        let dirs = [PathBuf::from("/work/a/java"), PathBuf::from("/work/b/java")];
+        let property = android_java_dirs_property(&dirs)?.expect("a property");
+        let separator = if cfg!(windows) { ';' } else { ':' };
+        assert_eq!(
+            property,
+            format!("-PrayxAndroidJavaDirs=/work/a/java{separator}/work/b/java")
+        );
+        let args = gradle_args(Some(&property));
+        assert_eq!(
+            args.iter()
+                .filter(|arg| arg.starts_with("-PrayxAndroidJavaDirs="))
+                .collect::<Vec<_>>(),
+            [&property]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_devkit_build_collects_the_directories_its_devkit_feature_reaches() -> Result<()> {
+        let workspace = crate::app::test_support::FixtureWorkspace::new();
+        let manifest = workspace.root.join("apps/demo/Cargo.toml");
+        let text = fs::read_to_string(&manifest)?;
+        fs::write(
+            &manifest,
+            text.replace("[features]\n", "[features]\ndevkit = [\"dep:inspector\"]\n"),
+        )?;
+        let app = workspace.app();
+        let inspector = fs::canonicalize(workspace.root.join("crates/inspector/java"))?;
+        let features = AppFeatureSelection::default();
+
+        let plain = app.android_java_dirs(&built_feature_selection(
+            &features,
+            &AndroidBuildOptions::default(),
+        ))?;
+        assert!(!plain.contains(&inspector), "{plain:?}");
+
+        let devkit = AndroidBuildOptions {
+            devkit: true,
+            ..AndroidBuildOptions::default()
+        };
+        let dirs = app.android_java_dirs(&built_feature_selection(&features, &devkit))?;
+        assert!(dirs.contains(&inspector), "{dirs:?}");
+        let property = android_java_dirs_property(&dirs)?.expect("a property");
+        assert!(
+            property.contains(&inspector.display().to_string()),
+            "{property}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn without_declarations_no_java_dirs_property_is_passed() -> Result<()> {
+        assert_eq!(android_java_dirs_property(&[])?, None);
+        let args = gradle_args(None);
+        assert!(
+            !args.iter().any(|arg| arg.contains("rayxAndroidJavaDirs")),
+            "{args:?}"
+        );
+        Ok(())
     }
 }

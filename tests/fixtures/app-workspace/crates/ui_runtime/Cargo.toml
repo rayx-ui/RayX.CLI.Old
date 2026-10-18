@@ -2,3 +2,6 @@
 name = "ui_runtime"
 version = "0.1.0"
 edition = "2024"
+
+[package.metadata.rayx]
+android_java_dirs = ["java"]
