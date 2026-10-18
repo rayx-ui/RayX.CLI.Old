@@ -15,6 +15,7 @@ agentx:
 ---
 # Repository Rules
 
-- Take dependencies anyone who clones the public repository can fetch: crates.io, public `https://` git repositories pinned to a commit `rev` (Gpux is public), and `[patch]` only with a comment directly above it linking the upstream issue or PR (remove it once upstream releases). No `path` dependency on a sibling checkout, no git `branch`/`tag`, no alternative registry or `[replace]`, no dependency on RayX or another private repository (`tests/dependency_sources.rs`).
+- Take dependencies anyone who clones the public repository can fetch: crates.io, public `https://` git repositories pinned to a commit `rev`, and `[patch]` only with a comment directly above it linking the upstream issue or PR (remove it once upstream releases). No `path` dependency on a sibling checkout, no git `branch`/`tag`, no alternative registry or `[replace]`, no dependency on RayX or another private repository (`tests/dependency_sources.rs`).
 - Use Conventional Commits with meaningful scopes and no Claude co-author lines. Code moved from RayX names the RayX commit it came from in the commit message (fresh history, no `git filter-repo`).
 - A change that RayX's CI or docs rely on (command grammar, flags, artifact layout) is paired with the matching RayX commit.
+- `rayx` is library-agnostic: it names and depends on no gpux or RayX library, whatever the source; libraries and apps declare what they need through `[package.metadata.rayx]` and `rayx.assets.toml`. `tests/library_agnostic.rs` scans non-test `src/` and the CLI's `Cargo.toml`/`Cargo.lock` with an allowlist whose entries must all still match.

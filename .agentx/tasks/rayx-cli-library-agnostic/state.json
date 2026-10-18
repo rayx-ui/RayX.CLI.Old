@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-library-agnostic",
-  "revision": 33,
+  "revision": 40,
   "planRevision": 3,
   "specHashes": {
     "requirements": "1253bb2be269b49082cec20c66f289d8de709e4d974fabe26b581bd791c11721",
@@ -52,10 +52,16 @@
       ]
     },
     "t08-library-guard": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t09-contract-docs": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t10-release-pr": {
       "status": "pending"
@@ -67,7 +73,10 @@
       "status": "pending"
     },
     "t13-release-policy": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t14-web-host-page": {
       "status": "done",
@@ -103,6 +112,15 @@
         }
       },
       "recordedAt": "2026-10-18T22:20:27Z"
+    },
+    "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725": {
+      "snapshot": {
+        "specHash": "6436d4ac76ab91de3d4e919755ed31961ecaf0ce3ce0a0cf22d4c57b5ff0fc9e",
+        "repositories": {
+          "rayx-cli": "0e1b68892c587832a87964d2bc311ddda3e1717ad99587b60764ceb07d9c835e"
+        }
+      },
+      "recordedAt": "2026-10-18T22:24:53Z"
     }
   },
   "checkResults": {
@@ -445,6 +463,108 @@
       "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s3-assets-android-final-4817dbf0030b.log",
       "logSha256": "d008d6b4c74fcc988a502d0810006c955ef8026c1abe67423ee41b59e2b51181",
       "inputsHash": "64021fe4f3ab408b4426b8f4b6175a72fb498034abf7b74df7ed313d56a677d8"
+    },
+    "s4-guard-docs/check-library-agnostic/final": {
+      "checkId": "check-library-agnostic",
+      "boundaryId": "s4-guard-docs",
+      "phase": "final",
+      "batchId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "definitionHash": "746d1fab2b57c54e7e3f6edd88cfbb025a604b74e5791d205d3c7dfb91714b8a",
+      "basisHash": "7a5f7f071b1caac4a7850b88e17a25214ed5429fbe7456f4b3bd0d737e99f442",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 0.1876,
+      "recordedAt": "2026-10-18T22:24:48Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-ba056c41e4b3.log",
+      "logSha256": "65d3a8f038345bf21e1da18894dcbaf18a6b925ecb26ab3573560123d484e982",
+      "inputsHash": "48bd880f76ff9159127a4eaf1292119abb4d48b3db70d37c6973219a501f2b26"
+    },
+    "s4-guard-docs/check-contract-docs/final": {
+      "checkId": "check-contract-docs",
+      "boundaryId": "s4-guard-docs",
+      "phase": "final",
+      "batchId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "definitionHash": "6b3d55bc5ef7ba2f71ea9958c7788f72e93ab21b107ebad8f4d9757378fc701d",
+      "basisHash": "7d7590a03e524362f17a7d858c748a695f267838910600a0782194431dbbb4f4",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 8,
+      "durationSeconds": 0.0855,
+      "recordedAt": "2026-10-18T22:24:49Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-3424ed622fb3.log",
+      "logSha256": "92df49039480f894caf67e4e5e0a827aaaa44f4ac9b00e33e5f27800e60c6bbe",
+      "inputsHash": "553a134950f459bddf4566fb87c292c6ecb48966a87f5d9daf9b3ea685ecd381"
+    },
+    "s4-guard-docs/check-docs-existing/final": {
+      "checkId": "check-docs-existing",
+      "boundaryId": "s4-guard-docs",
+      "phase": "final",
+      "batchId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "definitionHash": "dbea792ebff3267cc390470d2d19fa58a7442b378903863a9e651afe48b490d6",
+      "basisHash": "f3f752f627b9367156a10878756b835a80df2d71892f2114165d10f8432cb8da",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 33,
+      "durationSeconds": 0.703,
+      "recordedAt": "2026-10-18T22:24:49Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-e4fcb12b3ac5.log",
+      "logSha256": "d8ed94f22f4b04ba36788f1e92a07290f3c3784228dea1c7b3e4b06b0f23ca84",
+      "inputsHash": "aa013820775d545e52961c4d9b547876aac47b11d6cbf18bdf18653fdc48f283"
+    },
+    "s4-guard-docs/check-release-policy/final": {
+      "checkId": "check-release-policy",
+      "boundaryId": "s4-guard-docs",
+      "phase": "final",
+      "batchId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "definitionHash": "29931fd5a2b71c5babed45995a44abdfbafc0814662d04555966161b847b25eb",
+      "basisHash": "34b2521e9bfd77679757b18cd637e8153fd61105f7210a9058d3b28b825af950",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 0.0872,
+      "recordedAt": "2026-10-18T22:24:49Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-967d38258cb8.log",
+      "logSha256": "c9df69657683ef589f68f9fb0b320a0f514ffeec66403081e6075abca8d0f851",
+      "inputsHash": "5d7c159fd2376a484d8a1070439b8ba878e78852862a95bdd17d150758e9451f"
+    },
+    "s4-guard-docs/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s4-guard-docs",
+      "phase": "final",
+      "batchId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "definitionHash": "23126748b842fbceb362d60d96a23e4e5e7ccc96cb11f2f79b37ee70216d2044",
+      "basisHash": "b98d7eff90ab0c5f562a2111b3d47ec683edd7d7007481bd18af1bd1d4191432",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 0.2668,
+      "recordedAt": "2026-10-18T22:24:50Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-617afbe1f755.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "d30cabde12bbb38508da3c0ed4a19455108a6c1966d3aa51d8456877ac87a106"
+    },
+    "s4-guard-docs/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s4-guard-docs",
+      "phase": "final",
+      "batchId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "definitionHash": "70b6208d2190ce2fc15e2a20d9dc28bd468d2aa96c39a9e2aaef6f1dc58a6c6b",
+      "basisHash": "8ac6b4932b55fad7930c0a0dfed69bb9672693d988efabcfb32c63748d1ace75",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 3.1171,
+      "recordedAt": "2026-10-18T22:24:53Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s4-guard-docs-final-5e5ea49b2fb2.log",
+      "logSha256": "d91a47a177a559668ef196a2ede10ef9b8a7406a238c1e563c05ea8aedb07e47",
+      "inputsHash": "04a60cae0e2842095b6d21567abc3fc8682a769d0aa518a92c5206a8d6f979f9"
     }
   },
   "reviews": {
@@ -815,6 +935,158 @@
       "recordHashes": {
         "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
       }
+    },
+    "s4-guard-docs": {
+      "reviewerId": "reviewer-s4-hij5sy",
+      "snapshotId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "criterionIds": [
+        "GUARD-1",
+        "GUARD-2",
+        "DOC-1",
+        "DOC-2",
+        "POL-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/cli.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-1"
+          ],
+          "sha256": "8bbc7d251e7528f24961572a872d8645e576c57bc1b96cff720bbe897cfca2be"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/app/android.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-1"
+          ],
+          "sha256": "f2651678fff88d4abca53a5b581f38a44ec84a662b9482cb9a295141f39a7dde"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/setup/linux.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-1"
+          ],
+          "sha256": "d790a730901a3d6f2168d71ab85d34dc1ecb85bea4aaf8df9f4e77b5b573eed5"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "Cargo.toml",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-2"
+          ],
+          "sha256": "21bc06e2e133847ccc83d08b99a86a8036ab3ae6520741d96febe0a9e757a037"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/dependency_sources.rs",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-2"
+          ],
+          "sha256": "979940a9cc3faf86157768d81cff0d3deb2d2a1814b8197f2ab433257d601dc4"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "CLAUDE.md",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-2",
+            "DOC-2",
+            "POL-1"
+          ],
+          "sha256": "94b0f58d8af0b96957459c0a04ec8ee2dfab3affbfdb90fae765c81834c66ebb"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "AGENTS.md",
+          "kind": "source",
+          "criterionIds": [
+            "GUARD-2",
+            "DOC-2",
+            "POL-1"
+          ],
+          "sha256": "94b0f58d8af0b96957459c0a04ec8ee2dfab3affbfdb90fae765c81834c66ebb"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/library_agnostic.rs",
+          "kind": "test",
+          "criterionIds": [
+            "GUARD-1",
+            "GUARD-2"
+          ],
+          "sha256": "adfa492b0e3808f3566d54346e154df8e2f4cc7d3acb93a564595acd156df7d1"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/app-project.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-1"
+          ],
+          "sha256": "4bc7fdbc329f68721f2eeb66476676dd6f14b15367676ab388c64602e7bd06b0"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "README.md",
+          "kind": "source",
+          "criterionIds": [
+            "DOC-2"
+          ],
+          "sha256": "a14e106cb2bbcfd454883e33a4879e2583a819ed1aa9b70709f157a4420e56ba"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/app_contract_docs.rs",
+          "kind": "test",
+          "criterionIds": [
+            "DOC-1",
+            "DOC-2"
+          ],
+          "sha256": "f1466201cb65d84c26fb4fa01ca98538625c5df40642001052ef3990323e988a"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "release-plz.toml",
+          "kind": "source",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "sha256": "1e7571469516c36ee182515d885e7bacd34619ad898104f185f4cded24f50a11"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "docs/releasing.md",
+          "kind": "source",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "sha256": "145883e501e92d60847576a69e8330c1bc749e616744d5ac53af0a0ff65377e9"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/release_policy.rs",
+          "kind": "test",
+          "criterionIds": [
+            "POL-1"
+          ],
+          "sha256": "6af27052bc2e522ad629450306c4bba0e830e8d17e1cb58d29da9a61dc741afb"
+        }
+      ],
+      "summaryMarkdown": "All five criteria hold. The guard (tests/library_agnostic.rs) tokenizes on [A-Za-z0-9_-], normalizes case and -/_, applies the exact/prefix package deny list plus the source-only page-glue rules, strips every `#[cfg(test)] mod name { }` block with a brace matcher that skips strings, raw strings, char literals and comments while keeping line numbers, skips `#[cfg(test)] mod x;` files (asserts src/app/test_support.rs), and fails on stale allowlist entries. The allowlist is minimal: four entries with reasons (gpux prose in cli.rs, setup/mod.rs, setup/linux.rs; the `rayx-devkit-android` registry dir, documented as CLI vocabulary); `--branches` in guest.rs needs no entry because it tokenizes as `--branches`. GUARD-2 covers normal/dev/build/target/workspace dependency tables (keys and `package` renames) and Cargo.lock names. docs/app-project.md documents every DOC-1 item with neutral names (fallback page checked byte-for-byte against FALLBACK_WEB_PAGE), README pins and pointer match DOC-2, CLAUDE.md == AGENTS.md. release-plz.toml keeps both settings and renders Migration footers as an indented line under the commit (whitespace control verified); docs/releasing.md states the full 1.x policy. Non-blocking notes: the release-plz.toml comment above release_commits also changed (it carried the removed feat! advice, so rewording it is in the spirit of POL-1); in rendered Markdown the two-space indented Migration line is a lazy continuation of the bullet, which the criterion's own example accepts.",
+      "findingIds": [],
+      "recordedAt": "2026-10-18T22:26:49Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
+      }
     }
   },
   "checkpoints": {
@@ -841,6 +1113,14 @@
       },
       "reviewHash": "9382177365f54f16536656102fbfbe66054789fdb697caf0d2ed1ddd2e108d40",
       "recordedAt": "2026-10-18T22:22:15Z"
+    },
+    "s4-guard-docs": {
+      "snapshotId": "e5e375ff584d6f48827b0c387c44b496205ba646a4dec05da41d7e1ef9334725",
+      "commits": {
+        "rayx-cli": "94de41745c5041d6e434bc494772c30f1d1df65c"
+      },
+      "reviewHash": "f362918a17c3fac3f8de51e3518f94debfb21b8ff5b2852914ce050256429718",
+      "recordedAt": "2026-10-18T22:27:21Z"
     }
   },
   "findings": [
