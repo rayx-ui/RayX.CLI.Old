@@ -13,11 +13,16 @@ and RayX (`../RayX`) is private.
   `app` (moved from RayX xtask), `fmt`, `update`. Add a crate only when a second consumer needs a
   module.
 - Dependencies must be fetchable by anyone who clones this public repository, on any machine and
-  CI runner: crates.io; public git repositories over `https://` pinned to a `rev` (Gpux included);
-  and `[patch]` for a recorded reason, with a comment directly above it linking the upstream issue
-  or pull request, removed once upstream releases the change. No `path` dependency on a sibling
-  checkout, no git dependency on a `branch` or `tag`, no `[replace]`, and no dependency on RayX or
-  any other private repository (`tests/dependency_sources.rs` enforces this).
+  CI runner: crates.io; public git repositories over `https://` pinned to a `rev`; and `[patch]`
+  for a recorded reason, with a comment directly above it linking the upstream issue or pull
+  request, removed once upstream releases the change. No `path` dependency on a sibling checkout,
+  no git dependency on a `branch` or `tag`, no `[replace]`, and no dependency on RayX or any other
+  private repository (`tests/dependency_sources.rs` enforces this).
+- `rayx` is library-agnostic: the CLI names and depends on no gpux or RayX library, whatever its
+  source. Libraries and apps declare what they need through `[package.metadata.rayx]`,
+  `[workspace.metadata.rayx]` and `rayx.assets.toml` (`docs/app-project.md`); the CLI keeps only its
+  own vocabulary. `tests/library_agnostic.rs` enforces it for non-test `src/` and the CLI's
+  `Cargo.toml`/`Cargo.lock`, with an allowlist whose every entry must still match.
 - Nothing decides which project to work on from where `rayx` was compiled: no
   `env!("CARGO_MANIFEST_DIR")` outside tests. Version pins come from the project (`Cargo.lock`,
   `rust-toolchain.toml`, `[workspace.metadata.rayx]`); built-in defaults live in one table in
