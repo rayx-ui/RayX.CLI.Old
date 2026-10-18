@@ -388,25 +388,7 @@ fn copy_app_assets(
     out_dir: &Path,
 ) -> Result<PathBuf> {
     let destination = out_dir.join("assets");
-    // The fonts gpux's SVG renderer loads through the app's asset source (`fonts/...`); an app
-    // that does not use gpux has none.
-    let mut additional_roots = Vec::new();
-    if let Some(fonts) = app
-        .context
-        .find_resolved_package_dir("gpux-fonts", &app.manifest())?
-    {
-        let gpux_assets = fonts.join("assets");
-        if !gpux_assets.is_dir() {
-            bail!("gpux font assets are missing at {}", gpux_assets.display());
-        }
-        additional_roots.push(gpux_assets);
-    }
-    assets::package_app_assets_with_additional_roots(
-        app,
-        features,
-        &destination,
-        &additional_roots,
-    )?;
+    assets::package_app_assets_with_selection(app, features, &destination)?;
     Ok(destination)
 }
 
@@ -923,14 +905,8 @@ mod tests {
         let theme_root = root.join("theme");
         fs::create_dir_all(app_root.join("assets/icons"))?;
         fs::create_dir_all(theme_root.join("assets/icons"))?;
-        let fonts_root = root.join("gpux-fonts");
-        fs::create_dir_all(fonts_root.join("assets/fonts"))?;
-        fs::write(fonts_root.join("assets/fonts/Fixture.txt"), "font")?;
-        fs::write(fonts_root.join("fixture.rs"), "pub fn fonts() {}")?;
-        fs::write(
-            fonts_root.join("Cargo.toml"),
-            "[package]\nname = \"gpux-fonts\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\npath = \"fixture.rs\"\n",
-        )?;
+        let fonts_root = root.join("demo-fonts");
+        package_fonts_tests::write_fonts_package(&fonts_root, "demo-fonts", true)?;
         fs::write(app_root.join("fixture.rs"), "pub fn app() {}")?;
         fs::write(theme_root.join("fixture.rs"), "pub fn theme() {}")?;
         fs::write(app_root.join("assets/icons/app.svg"), "<svg/>")?;
@@ -947,7 +923,7 @@ path = "fixture.rs"
 
 [dependencies]
 wasm-fixture-theme = { path = "../theme" }
-gpux-fonts = { path = "../gpux-fonts" }
+demo-fonts = { path = "../demo-fonts" }
 "#,
         )?;
         fs::write(
@@ -970,7 +946,7 @@ path = "fixture.rs"
 
 [package_assets]
 mode = "explicit"
-include = ["wasm-fixture-theme"]
+include = ["wasm-fixture-theme", "demo-fonts"]
 
 [assets]
 roots = ["assets"]
@@ -1353,6 +1329,125 @@ Connection: close
         assert!(diagnostics.contains("webgpu-status"));
 
         fs::remove_dir_all(root).ok();
+        Ok(())
+    }
+}
+
+/// Fonts reach the web build only as package assets: no package is looked up by name.
+#[cfg(test)]
+mod package_fonts_tests {
+    use super::*;
+
+    /// A fonts package at `root` named `name`, with `assets/fonts/Fixture.txt`, that declares a
+    /// `kind = "fonts"` package asset (id `demo-fonts`) when `declares` is set.
+    pub(super) fn write_fonts_package(root: &Path, name: &str, declares: bool) -> Result<()> {
+        fs::create_dir_all(root.join("assets/fonts"))?;
+        fs::write(root.join("assets/fonts/Fixture.txt"), "font")?;
+        fs::write(root.join("fixture.rs"), "pub fn fonts() {}")?;
+        let metadata = if declares {
+            "\n[package.metadata.rayx.assets]\nmanifest = \"rayx.assets.toml\"\n"
+        } else {
+            ""
+        };
+        fs::write(
+            root.join("Cargo.toml"),
+            format!(
+                "[package]\nname = \"{name}\"\nversion = \"0.1.0\"\nedition = \"2024\"\n{metadata}\n[lib]\npath = \"fixture.rs\"\n"
+            ),
+        )?;
+        if declares {
+            fs::write(
+                root.join("rayx.assets.toml"),
+                "version = 1\n\n[asset_package]\nid = \"demo-fonts\"\nkind = \"fonts\"\nnamespace = \"\"\n\n[assets]\nroots = [\"assets\"]\n",
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Stages the web assets of an app that depends on a fonts package, with the given
+    /// `[package_assets]` table, and returns the staged asset directory.
+    fn stage(
+        name: &str,
+        fonts_package: &str,
+        declares: bool,
+        package_assets: &str,
+    ) -> Result<(tempfile::TempDir, PathBuf)> {
+        let dir = tempfile::tempdir()?;
+        let root = fs::canonicalize(dir.path())?.join(name);
+        let app_root = root.join("app");
+        fs::create_dir_all(app_root.join("assets/icons"))?;
+        fs::write(app_root.join("assets/icons/app.svg"), "<svg/>")?;
+        fs::write(app_root.join("fixture.rs"), "pub fn app() {}")?;
+        write_fonts_package(&root.join("fonts"), fonts_package, declares)?;
+        fs::write(
+            app_root.join("Cargo.toml"),
+            format!(
+                "[package]\nname = \"fonts-fixture-app\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\npath = \"fixture.rs\"\n\n[dependencies]\n{fonts_package} = {{ path = \"../fonts\" }}\n"
+            ),
+        )?;
+        fs::write(
+            app_root.join("rayx.assets.toml"),
+            format!("version = 1\n\n{package_assets}\n[assets]\nroots = [\"assets\"]\n"),
+        )?;
+        let app = crate::app::test_support::resolve(&app_root)?;
+        let assets = copy_app_assets(&app, &AppFeatureSelection::default(), &root.join("out"))?;
+        Ok((dir, assets))
+    }
+
+    /// How many staged files are the fixture font, wherever they landed.
+    fn staged_fonts(dir: &Path) -> Result<usize> {
+        let mut count = 0;
+        for entry in fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                count += staged_fonts(&path)?;
+            } else if path.file_name().is_some_and(|name| name == "Fixture.txt") {
+                count += 1;
+            }
+        }
+        Ok(count)
+    }
+
+    #[test]
+    fn a_declared_fonts_package_is_staged_once_in_auto_and_explicit_mode() -> Result<()> {
+        for package_assets in [
+            "[package_assets]\nmode = \"auto\"\n",
+            "[package_assets]\nmode = \"explicit\"\ninclude = [\"demo-fonts\"]\n",
+        ] {
+            let (_dir, assets) = stage("declared", "demo-fonts", true, package_assets)?;
+            assert!(
+                assets.join("fonts/Fixture.txt").is_file(),
+                "{package_assets}"
+            );
+            assert!(assets.join("icons/app.svg").is_file());
+            assert_eq!(staged_fonts(&assets)?, 1, "{package_assets}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn explicit_mode_without_the_fonts_id_stages_no_fonts() -> Result<()> {
+        let (_dir, assets) = stage(
+            "excluded",
+            "demo-fonts",
+            true,
+            "[package_assets]\nmode = \"explicit\"\ninclude = []\n",
+        )?;
+        assert!(!assets.join("fonts").exists());
+        assert!(assets.join("icons/app.svg").is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn a_package_named_gpux_fonts_without_a_declaration_contributes_nothing() -> Result<()> {
+        let (_dir, assets) = stage(
+            "undeclared",
+            "gpux-fonts",
+            false,
+            "[package_assets]\nmode = \"auto\"\n",
+        )?;
+        assert!(!assets.join("fonts").exists());
+        assert_eq!(staged_fonts(&assets)?, 0);
         Ok(())
     }
 }

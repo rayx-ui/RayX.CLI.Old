@@ -5,7 +5,7 @@ members = [
     "crates/ui_runtime",
     "crates/inspector",
     "crates/demo_components",
-    "crates/gpux_fonts",
+    "crates/demo_fonts",
     "patches/store_backend",
     "patches/unused_backend",
 ]

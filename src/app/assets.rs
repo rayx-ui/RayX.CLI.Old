@@ -36,14 +36,6 @@ pub fn package_app_assets(app: &AppDescriptor, destination: &Path) -> Result<()>
     package_app_assets_with_selection(app, &AppFeatureSelection::default(), destination)
 }
 
-pub fn package_app_assets_with_selection(
-    app: &AppDescriptor,
-    features: &AppFeatureSelection,
-    destination: &Path,
-) -> Result<()> {
-    package_app_assets_with_additional_roots(app, features, destination, &[])
-}
-
 pub fn package_app_content(app: &AppDescriptor, destination: &Path) -> Result<Vec<PathBuf>> {
     let config = AssetBuildConfig::for_app(app)?;
     fs::create_dir_all(destination)
@@ -99,17 +91,16 @@ fn read_catalog_paths(root: &Path) -> Result<Vec<String>> {
     index.paths()
 }
 
-pub fn package_app_assets_with_additional_roots(
+pub fn package_app_assets_with_selection(
     app: &AppDescriptor,
     features: &AppFeatureSelection,
     destination: &Path,
-    additional_roots: &[PathBuf],
 ) -> Result<()> {
     features.validate_for(&app.manifest())?;
     let graph = AssetBuildGraph::for_app(app, &features.metadata_context())?;
     let source_manifest = app.asset_manifest_path()?;
-    let mut entries = graph.collect_entries(&source_manifest)?;
-    let mut source_roots = graph
+    let entries = graph.collect_entries(&source_manifest)?;
+    let source_roots = graph
         .app
         .roots
         .iter()
@@ -122,14 +113,6 @@ pub fn package_app_assets_with_additional_roots(
         )
         .cloned()
         .collect::<Vec<_>>();
-
-    if !additional_roots.is_empty() {
-        let additional_config = graph.app.clone().with_roots(additional_roots.to_vec());
-        for (logical_path, entry) in collect_asset_entries(&additional_config, &source_manifest)? {
-            insert_asset_entry(&mut entries, logical_path, entry)?;
-        }
-        source_roots.extend(additional_config.roots);
-    }
 
     ensure_safe_destination(destination, &source_roots)?;
     let manifest = manifest_from_entries(&graph.app.package, &entries);
@@ -1953,11 +1936,6 @@ impl AssetBuildConfig {
             transforms: Vec::new(),
             app_content: Vec::new(),
         }
-    }
-
-    fn with_roots(mut self, roots: Vec<PathBuf>) -> Self {
-        self.roots = roots.into_iter().map(AssetBuildRoot::direct).collect();
-        self
     }
 }
 

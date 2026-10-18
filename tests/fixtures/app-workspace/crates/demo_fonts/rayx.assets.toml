@@ -1,0 +1,9 @@
+version = 1
+
+[asset_package]
+id = "demo-fonts"
+kind = "fonts"
+namespace = ""
+
+[assets]
+roots = ["assets"]

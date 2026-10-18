@@ -190,28 +190,6 @@ fn root_patches_come_from_the_selected_workspace() {
 }
 
 #[test]
-fn the_gpux_fonts_assets_come_from_the_resolved_dependency_graph() {
-    let workspace = Workspace::fixture("app-workspace");
-    let app = workspace.app("apps/demo");
-
-    let dir = app
-        .context
-        .resolved_package_dir("gpux-fonts", &app.manifest())
-        .expect("the graph has gpux-fonts");
-
-    assert_eq!(
-        canonical(&dir),
-        canonical(&workspace.path("crates/gpux_fonts"))
-    );
-    assert!(dir.join("assets/fonts/Demo.txt").is_file());
-    let missing = app
-        .context
-        .resolved_package_dir("no-such-package", &app.manifest())
-        .expect_err("not in the graph");
-    assert!(format!("{missing:#}").contains("no-such-package"));
-}
-
-#[test]
 fn the_threaded_build_uses_the_pinned_nightly_and_the_workspace_target() {
     let workspace = Workspace::fixture("app-workspace");
     let app = workspace.app("apps/demo");

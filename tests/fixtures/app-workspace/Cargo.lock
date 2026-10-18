@@ -3,11 +3,11 @@
 version = 4
 
 [[package]]
-name = "demo_components"
+name = "demo-fonts"
 version = "0.1.0"
 
 [[package]]
-name = "gpux-fonts"
+name = "demo_components"
 version = "0.1.0"
 
 [[package]]
@@ -18,8 +18,8 @@ version = "0.1.0"
 name = "rayx_demo"
 version = "0.1.0"
 dependencies = [
+ "demo-fonts",
  "demo_components",
- "gpux-fonts",
  "inspector",
  "store_backend",
  "ui_runtime",
