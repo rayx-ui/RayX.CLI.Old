@@ -1,7 +1,7 @@
 {
   "schemaVersion": 7,
   "epicId": "rayx-cli-library-agnostic",
-  "revision": 2,
+  "revision": 7,
   "planRevision": 3,
   "specHashes": {
     "requirements": "1253bb2be269b49082cec20c66f289d8de709e4d974fabe26b581bd791c11721",
@@ -10,7 +10,10 @@
   },
   "tasks": {
     "t01-pin-sources": {
-      "status": "pending"
+      "status": "done",
+      "workerIds": [
+        "coordinator-9fea8079"
+      ]
     },
     "t02-entry-dependencies": {
       "status": "pending"
@@ -52,10 +55,169 @@
       "status": "pending"
     }
   },
-  "validationBatches": {},
-  "checkResults": {},
-  "reviews": {},
-  "checkpoints": {},
+  "validationBatches": {
+    "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0": {
+      "snapshot": {
+        "specHash": "6436d4ac76ab91de3d4e919755ed31961ecaf0ce3ce0a0cf22d4c57b5ff0fc9e",
+        "repositories": {
+          "rayx-cli": "499c412cadb79dc7dd5cbb012399241d1d6a0f874f198fd4ba63869bcda987b8"
+        }
+      },
+      "recordedAt": "2026-10-18T21:56:15Z"
+    }
+  },
+  "checkResults": {
+    "s1-pin-sources/check-pin-sources/final": {
+      "checkId": "check-pin-sources",
+      "boundaryId": "s1-pin-sources",
+      "phase": "final",
+      "batchId": "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0",
+      "definitionHash": "131c50a0f81c7718a91e7b4919b8f36bc7499e6c402103aac251f4f025100147",
+      "basisHash": "dfbbcd45522eab10b7e463d701e4a34912f366df08b881f1f7f3a8eb723feb94",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 4,
+      "durationSeconds": 0.7394,
+      "recordedAt": "2026-10-18T21:55:29Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s1-pin-sources-final-32328a004a44.log",
+      "logSha256": "429354b5bc9cbee09b9efd662567362fa1f252b9e772a418a70f4d80a857cd4c",
+      "inputsHash": "3bc3ff570f2fee68a646ff054a6c21bf5cfe3dd8ef2038a4f3ed838ce7324092"
+    },
+    "s1-pin-sources/check-pin-existing/final": {
+      "checkId": "check-pin-existing",
+      "boundaryId": "s1-pin-sources",
+      "phase": "final",
+      "batchId": "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0",
+      "definitionHash": "84b073e1deba345b9f23fd3cf56b8faceea262b1217d5a9e1f3a3e20a6ee2a50",
+      "basisHash": "eddcb4c3652a9d72605ef7eab49f14a8f32ff358bd6548b641c045c98d75bb76",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 35,
+      "durationSeconds": 16.4944,
+      "recordedAt": "2026-10-18T21:55:45Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s1-pin-sources-final-fe9ea6904192.log",
+      "logSha256": "ee606722e0f7e5f6cbe7aa98fb9646b5c23dbe6c30037a55574dbd48dfe75167",
+      "inputsHash": "cb12ac079c59fd628dc890a4f1d724b279ebe22407be017678aafa926083bd29"
+    },
+    "s1-pin-sources/check-fmt/final": {
+      "checkId": "check-fmt",
+      "boundaryId": "s1-pin-sources",
+      "phase": "final",
+      "batchId": "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0",
+      "definitionHash": "23126748b842fbceb362d60d96a23e4e5e7ccc96cb11f2f79b37ee70216d2044",
+      "basisHash": "d1f9bba45ad19770c3b720cc3a554903b4a964b1e7854a5be95276e457cfca05",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 2.5753,
+      "recordedAt": "2026-10-18T21:55:48Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s1-pin-sources-final-39faab1eb247.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputsHash": "8329df391e634b70fcfd9a32d22b36dcedb22f18a746b2520c1bc2e20c50651a"
+    },
+    "s1-pin-sources/check-clippy/final": {
+      "checkId": "check-clippy",
+      "boundaryId": "s1-pin-sources",
+      "phase": "final",
+      "batchId": "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0",
+      "definitionHash": "70b6208d2190ce2fc15e2a20d9dc28bd468d2aa96c39a9e2aaef6f1dc58a6c6b",
+      "basisHash": "7a6a96b2fc77a750d585979cede3538528ba094b8ebcf6677069235c3d98b19b",
+      "status": "passed",
+      "exitCode": 0,
+      "testCount": 0,
+      "durationSeconds": 27.0183,
+      "recordedAt": "2026-10-18T21:56:15Z",
+      "messageMarkdown": "Expectation matched",
+      "logPath": "artifacts-temp/agentx/rayx-cli-library-agnostic/s1-pin-sources-final-5adea453e4f0.log",
+      "logSha256": "3e216661b141252fa6403fe2fa08a3f7c93b36bcec4ec23ea7c7026757cbe9e6",
+      "inputsHash": "9eb0588dec1cac55d71f364bd825e686b99a2856e2dbc0fadd84bcb9746d184a"
+    }
+  },
+  "reviews": {
+    "s1-pin-sources": {
+      "reviewerId": "reviewer-s1-k7q3vm",
+      "snapshotId": "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0",
+      "criterionIds": [
+        "PIN-1"
+      ],
+      "verdict": "passed",
+      "anchors": [
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/pins.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "7f2213bd3cc780b5da4641f61542fdd9062f60eca225d59c077b9919d977ed46"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "src/project/mod.rs",
+          "kind": "source",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "2c18655e4fef91c4d6b7901432f7bc32458ceaba15d63cf1e6bd9a7e2f98bb58"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/pin_sources.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "0a469ec7f2dc97e48950d35fd5df8bc402e463af4e1cf6e74f16e795633953ef"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/project_pins.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "c85621cef9929a51ebc83f8e1c5cedbf646a78c18d2cb8b80376020a5d4b684c"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/doctor.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "36c4c68269bf312c58213edef06892dc9b4cfe63354fd96c671e35edfa8ebaec"
+        },
+        {
+          "repositoryId": "rayx-cli",
+          "path": "tests/setup_android.rs",
+          "kind": "test",
+          "criterionIds": [
+            "PIN-1"
+          ],
+          "sha256": "e828cab9152c93902af20e84672d1a9b23c3a04c63a379e0eca672e657d5386c"
+        }
+      ],
+      "summaryMarkdown": "PIN-1 met. `PinSource` has only `Project`/`Default` (`project`/`default`); `GpuxProfile`, `GPUX_CHECKOUT`, `Project::is_gpux_checkout` and the `gpux-checkout` fixture are gone, and no reference remains in `src/` or `tests/` outside the neutral `gpux-testkit` member names used as negative cases. `Pins::resolve` applies one rule (project key, else `DEFAULTS`; build tools `None` without a key; system image follows the platform pin and its source); module docs list two sources and the `DEFAULTS` comment names no library. The new `tests/pin_sources.rs` group covers a `gpux-testkit` workspace getting all defaults, declared Android pins as `project` regardless of member names (cargo and files-only discovery), the exhaustive two-variant source, and doctor text/JSON showing only `project`/`default`. Rewritten `project_pins`, `doctor` and `setup_android` tests encode the generic rule. Stale project-domain memory (rules naming the gpux-checkout profile) is for post-epic memory sync per the declared supersession; README is DOC-2 (sprint 4).",
+      "findingIds": [],
+      "recordedAt": "2026-10-18T21:57:12Z",
+      "recordHashes": {
+        "rayx-cli:docs/manual-verification.md": "02c944736592025155d0ecbb90ad612545993a3e31f6dbc0cb6a686de607bff1"
+      }
+    }
+  },
+  "checkpoints": {
+    "s1-pin-sources": {
+      "snapshotId": "5723614e46578350570ce5cf7c7834c0c8a34a3c24d7ed81b59b84ad5adfc9b0",
+      "commits": {
+        "rayx-cli": "5d47af248c962ebc1df4d4f7b6948806decc4c04"
+      },
+      "reviewHash": "d59b415afb802a27ed12dace1e98be4b8fe9c0815b21b9bb3c34582778da5709",
+      "recordedAt": "2026-10-18T21:57:50Z"
+    }
+  },
   "findings": [],
   "handoffMarkdown": "",
   "protectedPaths": {
