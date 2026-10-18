@@ -321,10 +321,12 @@ fn build_android_app_with_toolchain(
     toolchain: &AndroidToolchain,
     targets: &[AndroidBuildTarget],
 ) -> Result<()> {
+    // One selection for everything the build derives from the app's graph (the entry manifest and
+    // its patches, package assets, Java directories): what the native build compiles.
+    let built_features = built_feature_selection(features, options);
+    let features = &built_features;
     // The Java sources packages in the app's graph declare, validated before anything builds.
-    let java_dirs_property = android_java_dirs_property(
-        &app.android_java_dirs(&built_feature_selection(features, options))?,
-    )?;
+    let java_dirs_property = android_java_dirs_property(&app.android_java_dirs(features)?)?;
     let unstripped_jni_libs_dir = app.temp_root()?.join("android").join("jniLibs-unstripped");
     let packaged_jni_libs_dir = app.android_generated_jni_dir()?;
     reset_dir(&unstripped_jni_libs_dir)?;
@@ -2045,5 +2047,131 @@ mod java_dirs_gradle_tests {
             "{args:?}"
         );
         Ok(())
+    }
+}
+
+/// A `--android-devkit` build derives its entry manifest (with the graph's `[patch]` entries),
+/// package assets and Java directories from the selection plus `devkit`, the features the native
+/// build compiles.
+#[cfg(test)]
+mod devkit_graph_tests {
+    use super::*;
+    use crate::app::test_support::FixtureWorkspace;
+
+    /// The fixture app with `devkit = ["dep:store_backend", "dep:devkit_assets"]`, where
+    /// `devkit_assets` is an asset package reached only through that feature, in auto
+    /// package-assets mode.
+    fn devkit_workspace() -> Result<FixtureWorkspace> {
+        let workspace = FixtureWorkspace::new();
+        let root = &workspace.root;
+        let package = root.join("crates/devkit_assets");
+        fs::create_dir_all(package.join("src"))?;
+        fs::create_dir_all(package.join("assets/devkit"))?;
+        fs::write(package.join("src/lib.rs"), "")?;
+        fs::write(package.join("assets/devkit/probe.txt"), "probe")?;
+        fs::write(
+            package.join("Cargo.toml"),
+            "[package]\nname = \"devkit_assets\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[package.metadata.rayx.assets]\nmanifest = \"rayx.assets.toml\"\n",
+        )?;
+        fs::write(
+            package.join("rayx.assets.toml"),
+            "version = 1\n\n[asset_package]\nid = \"devkit-assets\"\nkind = \"component\"\nnamespace = \"\"\n\n[assets]\nroots = [\"assets\"]\n",
+        )?;
+        let workspace_manifest = root.join("Cargo.toml");
+        let text = fs::read_to_string(&workspace_manifest)?;
+        fs::write(
+            &workspace_manifest,
+            text.replace(
+                "\"apps/demo\",",
+                "\"apps/demo\",\n    \"crates/devkit_assets\",",
+            ),
+        )?;
+        let manifest = root.join("apps/demo/Cargo.toml");
+        let text = fs::read_to_string(&manifest)?
+            .replace(
+                "[features]\n",
+                "[features]\ndevkit = [\"dep:store_backend\", \"dep:devkit_assets\"]\n",
+            )
+            .replace(
+                "[dependencies]\n",
+                "[dependencies]\ndevkit_assets = { path = \"../../crates/devkit_assets\", optional = true }\n",
+            );
+        fs::write(&manifest, text)?;
+        let assets = root.join("apps/demo/rayx.assets.toml");
+        // Auto mode: every asset package of the graph, so the devkit-only one counts only when
+        // the selection reaches it.
+        let text = fs::read_to_string(&assets)?
+            .replace("mode = \"explicit\"", "mode = \"auto\"")
+            .replace("include = [\"demo-components\", \"demo-fonts\"]\n", "");
+        fs::write(&assets, text)?;
+        Ok(workspace)
+    }
+
+    fn devkit_options() -> AndroidBuildOptions {
+        AndroidBuildOptions {
+            devkit: true,
+            ..AndroidBuildOptions::default()
+        }
+    }
+
+    #[test]
+    fn the_devkit_entry_manifest_repeats_the_patch_its_devkit_feature_reaches() -> Result<()> {
+        let workspace = devkit_workspace()?;
+        let app = workspace.app();
+        let features = AppFeatureSelection::default();
+
+        let plain = fs::read_to_string(app.android_rust_manifest(&built_feature_selection(
+            &features,
+            &AndroidBuildOptions::default(),
+        ))?)?;
+        assert!(!plain.contains("[patch.crates-io]"), "{plain}");
+
+        let devkit = fs::read_to_string(
+            app.android_rust_manifest(&built_feature_selection(&features, &devkit_options()))?,
+        )?;
+        assert!(devkit.contains("[patch.crates-io]"), "{devkit}");
+        assert!(devkit.contains("store_backend = { path = "), "{devkit}");
+        Ok(())
+    }
+
+    #[test]
+    fn the_devkit_build_stages_the_assets_its_devkit_feature_reaches() -> Result<()> {
+        let workspace = devkit_workspace()?;
+        let app = workspace.app();
+        let features = AppFeatureSelection::default();
+        let plain = workspace.root.join("out-plain");
+        let devkit = workspace.root.join("out-devkit");
+
+        stage_android_package_content(
+            &app,
+            &built_feature_selection(&features, &AndroidBuildOptions::default()),
+            &plain,
+        )?;
+        stage_android_package_content(
+            &app,
+            &built_feature_selection(&features, &devkit_options()),
+            &devkit,
+        )?;
+        assert!(!plain.join("assets/devkit/probe.txt").exists());
+        assert!(devkit.join("assets/devkit/probe.txt").is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn the_build_derives_everything_from_one_selection() {
+        let source = include_str!("android.rs");
+        let build = source
+            .split("fn build_android_app_with_toolchain(")
+            .nth(1)
+            .and_then(|rest| rest.split("\nfn ").next())
+            .expect("the build function");
+        assert!(build.contains("let features = &built_features;"));
+        for derived in [
+            "app.android_java_dirs(features)",
+            "app.android_rust_manifest(features)",
+            "stage_android_package_content(app, features,",
+        ] {
+            assert!(build.contains(derived), "{derived}");
+        }
     }
 }
