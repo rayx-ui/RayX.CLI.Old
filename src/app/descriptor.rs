@@ -512,9 +512,21 @@ impl AppDescriptor {
                 .collect::<std::collections::BTreeSet<_>>()
                 .into_iter()
                 .collect::<Vec<_>>();
+            // The entry crate's own feature, which forwards `<app lib>/f` and turns on the
+            // optional entry dependencies `f` enables; a name it does not declare (an implicit
+            // optional-dependency feature of the app) is forwarded directly.
+            let entry_features = manifest_feature_names(&app_manifest)?
+                .into_iter()
+                .collect::<BTreeSet<_>>();
             enabled_app_features
                 .iter()
-                .map(|feature| format!("{}/{feature}", self.rust_lib_name))
+                .map(|feature| {
+                    if entry_features.contains(feature) {
+                        feature.clone()
+                    } else {
+                        format!("{}/{feature}", self.rust_lib_name)
+                    }
+                })
                 .collect::<Vec<_>>()
         };
         // Whether the project has a lock, before resolving the graph (which may write one).
@@ -1152,7 +1164,7 @@ mod tests {
         assert!(text.contains("ui_runtime = { path = "));
         assert!(text.contains("crates/ui_runtime\" }"));
         assert!(text.contains("rayx_demo = { package = \"rayx_demo\", path = "));
-        assert!(text.contains("default = [\"rayx_demo/profile-all\"]"));
+        assert!(text.contains("default = [\"profile-all\"]"));
 
         let source = std::fs::read_to_string(manifest.parent().unwrap().join("src/lib.rs"))?;
         assert!(source.contains("apps/demo/src/main.rs"));
@@ -1292,7 +1304,7 @@ mod tests {
             app.web_manifest(&selection)?,
         ] {
             let text = std::fs::read_to_string(manifest)?;
-            assert!(text.contains("default = [\"rayx_demo/profile-a\", \"rayx_demo/profile-b\"]"));
+            assert!(text.contains("default = [\"profile-a\", \"profile-b\"]"));
             assert!(text.contains("default-features = false"));
         }
         Ok(())

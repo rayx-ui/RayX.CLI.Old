@@ -97,6 +97,12 @@ inspector = { version = "0.3", optional = true }
   `dep:<key>` for each optional entry dependency `f` enables, directly or through other features:
   a member `dep:<key>`, `<key>/<feature>` (not `<key>?/<feature>`), or the implicit feature
   `<key>`. No feature or crate name is special.
+- The entry crate's `default` lists the selected features by their entry-crate names (the app's
+  `default` members, every feature with `--all-features`, none of them with
+  `--no-default-features`, plus `--features`), so a selected feature also turns on the optional
+  entry dependencies it enables and the `#[cfg(feature = "...")]` code in `main.rs`. A default
+  member the app's `[features]` table does not declare (an implicit optional-dependency feature)
+  is listed as `<app lib>/<name>`.
 - A listed key that is not a normal dependency of the app, or a value that is not an array of
   strings, fails with an error naming the key or `entry_dependencies`.
 
