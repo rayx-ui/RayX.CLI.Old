@@ -2010,7 +2010,10 @@ mod java_dirs_gradle_tests {
             text.replace("[features]\n", "[features]\ndevkit = [\"dep:inspector\"]\n"),
         )?;
         let app = workspace.app();
-        let inspector = fs::canonicalize(workspace.root.join("crates/inspector/java"))?;
+        // The spelling `android_java_dirs` returns: canonical, without a verbatim prefix.
+        let inspector = command_path(&fs::canonicalize(
+            workspace.root.join("crates/inspector/java"),
+        )?);
         let features = AppFeatureSelection::default();
 
         let plain = app.android_java_dirs(&built_feature_selection(
