@@ -240,14 +240,17 @@ a `guests` array. Doctor never starts a VM and exits 0 whenever the host could b
 ### `rayx app` and `rayx fmt`
 
 See [Using `rayx app` in a project](docs/app-project.md) for the grammar, the project contract, the
-prerequisite step, the tests and the Playwright package template.
+prerequisite step, the tests and the Playwright package template. `rayx` names no library: an app
+lists the crates its `main.rs` uses in `entry_dependencies`, libraries declare their assets and
+`android_java_dirs`, and the web page is the app's own `platform/web/index.html`. Projects coming
+from rayx 1.3 read
+[Migrating to rayx 1.4](docs/app-project.md#migrating-to-rayx-14).
 
 ### Versions and where they come from
 
 Every version `rayx` needs is resolved in this order: the project (`Cargo.lock` for
-`wasm-bindgen`, `rust-toolchain.toml` for Rust, `[workspace.metadata.rayx]` for the rest), then,
-inside a gpux checkout, gpux's own Android profile, then the built-in default. `rayx doctor` shows
-each pin with its source.
+`wasm-bindgen`, `rust-toolchain.toml` for Rust, `[workspace.metadata.rayx]` for the rest), then the
+built-in default. `rayx doctor` shows each pin with its source, `project` or `default`.
 
 | Pin | Default | Project key |
 | --- | --- | --- |
@@ -255,10 +258,10 @@ each pin with its source.
 | Node.js | 22 | `node` |
 | JDK | 21 | `jdk` |
 | Playwright | 1.59.1 | `playwright` |
-| Android platform | `android-34` (`android-36` in a gpux checkout) | `android-platform` |
+| Android platform | `android-34` | `android-platform` |
 | Android NDK | 28.0.12674087 | `android-ndk` |
 | NDK API level | 31 | `android-ndk-api` |
-| Android build tools | none (`36.0.0` in a gpux checkout) | `android-build-tools` |
+| Android build tools | none | `android-build-tools` |
 | Emulator system image | `<platform>;google_apis` | `android-system-image` |
 | Xcode | the newest stable | `xcode` |
 | Guest Ubuntu (WSL and Lima) | 24.04 | none: built in, since a guest serves every project |

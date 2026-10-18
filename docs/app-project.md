@@ -1,8 +1,9 @@
 # Using `rayx app` in a project
 
-`rayx app` builds, runs, packages, publishes, deploys and tests an app that uses RayX. It works in
-any Cargo workspace: nothing is read from the RayX repository or from where `rayx` was built. This
-page is the contract between a project and the tool.
+`rayx app` builds, runs, packages, publishes, deploys and tests an app. It works in any Cargo
+workspace: nothing is read from another repository or from where `rayx` was built, and `rayx` names
+no library. Libraries and apps declare what they need through the keys and files below. This page
+is the contract between a project and the tool.
 
 ```text
 rayx app [<app-dir>] <action> <target> [options]
@@ -29,10 +30,12 @@ Builds are release builds; `--debug` (or `--development`) selects a debug build.
 - **A Cargo workspace.** The workspace root and its members come from `cargo metadata` of the
   selected app. `artifacts/` (packaged output), `artifacts-temp/` (generated files) and `target/`
   are created under that root for every target.
-- **`rayx` as a dependency of the app**, when the app uses RayX. The generated Android, iOS and
-  WebAssembly entry crates depend on `rayx` (and on `rayx_devkit` when the app's `devkit` feature
-  enables it) from the same source the app uses: its path, its git repository and revision, or its
-  registry version. An app that does not depend on `rayx` gets entry crates without it.
+- **The crates its `main.rs` uses, in `entry_dependencies`.** The generated Android, iOS and
+  WebAssembly entry crates compile the app's `src/main.rs` as a module, so they depend on the app's
+  own library plus the dependencies `[package.metadata.rayx] entry_dependencies` lists (below).
+- **A `Cargo.lock`.** Every generated entry crate is a workspace of its own and starts from a copy
+  of the workspace's `Cargo.lock`, so it builds with the versions the project builds with. Without
+  a workspace lock the entry crates resolve on their own.
 - **The versions it wants.** `Cargo.lock` (`wasm-bindgen`), `rust-toolchain.toml` (the Rust
   channel) and `[workspace.metadata.rayx]` pin the tools; anything not pinned has a built-in
   default. See `rayx doctor` for the resolved values.
@@ -46,8 +49,11 @@ Builds are release builds; `--debug` (or `--development`) selects a debug build.
 | `android-platform`, `android-ndk`, `android-ndk-api`, `android-build-tools`, `android-system-image` | Android SDK pins. |
 | `xcode` | An exact Xcode version. |
 
-`[patch]` entries in the workspace root manifest are repeated in the generated WebAssembly crate
-when the app needs them (the IndexedDB storage crates).
+`[patch]` applies only from the root of the workspace being built, so each generated entry crate
+repeats the root manifest's `[patch.<registry or URL>]` entries whose patched package (the entry's
+`package`, else its key) is in the app's resolved dependency graph for the selected features. A
+relative `path` is made absolute under the workspace root; every other field is kept. No package
+name decides it.
 
 ### `[package.metadata.rayx]`
 
@@ -62,6 +68,53 @@ when the app needs them (the IndexedDB storage crates).
 | `diagnostic_harness` | Marks an app that may use the `rayx_diagnostics` feature (never for `pack`, `publish` or `deploy`). |
 | `playwright_specs` | The spec files or directories `test wasm` runs. |
 | `playwright_projects` | The Playwright projects `test wasm` runs. |
+| `entry_dependencies` | The app dependencies the generated entry crates also depend on (below). |
+| `android_java_dirs` | Android Java source directories of this package (below); any package in the app's graph may declare it. |
+| `assets.manifest` | `[package.metadata.rayx.assets] manifest = "rayx.assets.toml"`: the package ships assets. |
+
+#### `entry_dependencies`
+
+```toml
+[package.metadata.rayx]
+entry_dependencies = ["ui_runtime", "inspector"]
+
+[features]
+inspect = ["dep:inspector"]
+
+[dependencies]
+ui_runtime = { path = "../../crates/ui_runtime" }
+inspector = { version = "0.3", optional = true }
+```
+
+- It lists keys of the app's own normal dependencies (`[dependencies]` or
+  `[target.'<cfg>'.dependencies]`; a renamed dependency by its key). The default is none: the entry
+  crates then depend only on the app's library (and the web crate on `wasm-bindgen` and
+  `wasm-bindgen-futures`).
+- Each listed dependency is declared in the entry crate as the app declares it: the same source
+  (absolute path, git URL with its `rev`/`branch`/`tag`, or registry version), `package` for a
+  rename, `default-features = false`, `features`, `optional`, and the same target table.
+- Every app feature `f` except `default` is forwarded as `f = ["<app lib>/f", ...]`, plus
+  `dep:<key>` for each optional entry dependency `f` enables, directly or through other features:
+  a member `dep:<key>`, `<key>/<feature>` (not `<key>?/<feature>`), or the implicit feature
+  `<key>`. No feature or crate name is special.
+- A listed key that is not a normal dependency of the app, or a value that is not an array of
+  strings, fails with an error naming the key or `entry_dependencies`.
+
+#### `android_java_dirs`
+
+```toml
+[package.metadata.rayx]
+android_java_dirs = ["java"]
+```
+
+Any package in the app's resolved graph for the selected features, the app included, may declare
+directories of Android Java sources, relative to its own manifest directory. `rayx app ...
+build|run|deploy|pack android` collects them as absolute, deduplicated, sorted directories and
+passes them to Gradle as `-PrayxAndroidJavaDirs=<dirs joined by the platform path separator>`;
+without declarations no such property is passed. An entry that is not a string, is absolute, leaves
+the package's directory or does not exist fails before Gradle runs, naming the package and the
+entry. A package outside the graph (an unrelated workspace member, a dependency behind an
+unselected feature) contributes nothing.
 
 ## Files the app owns
 
@@ -74,13 +127,134 @@ future `rayx new` can generate them.
   of dependencies, and `[app_content] files = [...]` for bootstrap files such as
   `app_settings.json` that sit beside the catalog rather than inside it. A package that ships assets
   declares `[asset_package] id, kind, namespace` and names the file in
-  `[package.metadata.rayx.assets] manifest = "rayx.assets.toml"`.
+  `[package.metadata.rayx.assets] manifest = "rayx.assets.toml"`. Fonts and every other library
+  asset arrive this way only, on every target; for example a fonts package:
+
+  ```toml
+  # rayx.assets.toml of the fonts package
+  version = 1
+
+  [asset_package]
+  id = "demo-fonts"
+  kind = "fonts"
+  namespace = ""
+
+  [assets]
+  roots = ["assets"]
+  ```
+
+  In `mode = "auto"` (the default) every asset package of the graph is included; in
+  `mode = "explicit"` the app adds `"demo-fonts"` to `include`.
 - **`platform/android/gradle/`**: a Gradle project with `gradlew` and an `app/build.gradle.kts` that
   reads the native libraries from `build/generated/rustJniLibs` and the `-PrayxAndroid*` properties
-  `rayx` passes.
+  `rayx` passes (`rayxAndroidMinify`, `rayxAndroidShrinkResources`, `rayxAndroidCrunchPngs`,
+  `rayxAndroidCompressNativeLibs` and `rayxAndroidJavaDirs`). It adds the Java directories with
+  `(findProperty("rayxAndroidJavaDirs") as String?)?.split(File.pathSeparator)` as Java source
+  directories.
 - **`platform/ios/project.yml`** (and the generated `.xcodeproj` it names): an XcodeGen project that
   builds the static library from `RAYX_IOS_RUST_MANIFEST` and copies the generated `assets` folder
   into the bundle.
+- **`platform/web/index.html`**: the web host page. `rayx app ... build|run|pack|publish|test wasm`
+  copies it to the output as `index.html`, replacing these placeholders (each any number of times)
+  and nothing else:
+
+  | Placeholder | Replaced with |
+  | --- | --- |
+  | `__RAYX_MODULE__` | The wasm-bindgen JavaScript module URL, `/<module base>.js`. |
+  | `__RAYX_TITLE__` | The app's title (its slug). |
+  | `__RAYX_DIAGNOSTICS__` | `true` or `false`: whether this build enables the app's diagnostics feature (`rayx_diagnostics`, or `--all-features`). |
+
+  Any other `__RAYX_<NAME>__` token is an error naming the token, the page and its line; the page
+  is checked before the build starts, so nothing is built or written. What the page does in
+  diagnostics mode is the app's business. Without the file, `rayx` writes this neutral page, the
+  same for every build; copy it as the starting template:
+
+  ```html
+  <!doctype html>
+  <html lang="en">
+  <head>
+    <base href="/" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>__RAYX_TITLE__ WASM</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; color: #111827; }
+      body { font-family: system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import init, { run } from '__RAYX_MODULE__';
+      await init();
+      await run();
+      document.body.dataset.rayxWasm = 'started';
+    </script>
+  </body>
+  </html>
+  ```
+
+## Android DevKit bridge
+
+`deploy|run android --android-devkit` builds the entry crate with `--features devkit` and
+`RAYX_ANDROID_DEVKIT_PORT` (default port 47123), forwards that port, waits for the `devkit.metadata`
+JSON-RPC probe and writes a registration file (by default in `<temp>/rayx-devkit-android`, or
+`--android-devkit-registry-dir`), then prints the file and its registry directory. The app must
+define a Cargo feature named `devkit`; without it `build`, `run`, `deploy` and `pack android
+--android-devkit` fail before any toolchain step.
+
+## The CLI vocabulary
+
+`rayx` names no library. What it does know is its own vocabulary:
+
+- the `[package.metadata.rayx]` and `[workspace.metadata.rayx]` tables (including
+  `entry_dependencies` and `android_java_dirs`) and the `rayx.assets.toml` schema;
+- the app features `rayx_diagnostics` (with `diagnostic_harness`) and `devkit` (the bridge above,
+  with `RAYX_ANDROID_DEVKIT_PORT`);
+- the default Android activity `dev.rayx.mobile.RayXActivity` and the `-PrayxAndroid*` Gradle
+  properties;
+- the `RAYX_*` environment variables (`RAYX_APP_URL`, `RAYX_WEBGPU_REQUIRED`,
+  `RAYX_IOS_RUST_MANIFEST`, ...);
+- the web page placeholders `__RAYX_MODULE__`, `__RAYX_TITLE__`, `__RAYX_DIAGNOSTICS__` and the
+  fallback page's `data-rayx-wasm` marker (`document.body.dataset.rayxWasm`);
+- the threaded WebAssembly build's requirement that the module export `wasm_thread_entry_point`;
+- the binary and Lima VM name `rayx`.
+
+`tests/library_agnostic.rs` in this repository keeps the code that way.
+
+## Migrating to rayx 1.4
+
+rayx 1.4 stops special-casing libraries. What used to happen implicitly is now declared.
+
+An **app** adds:
+
+- `entry_dependencies` listing the crates its `main.rs` uses directly (the entry crates no longer
+  add any crate on their own);
+- the id of each fonts (or other asset) package to `include` in its `[package_assets]` table, if it
+  uses `mode = "explicit"`;
+- `rayxAndroidJavaDirs` in its `build.gradle.kts` (split by `File.pathSeparator`) instead of a
+  fixed path to a library's Java sources;
+- a `devkit` feature, if it uses `--android-devkit`;
+- `platform/web/index.html` with the three placeholders, if it relied on the generated page's
+  diagnostics (start from the fallback page above and add what its specs read).
+
+A **library** adds:
+
+- a package-asset declaration (`[package.metadata.rayx.assets]` and its `rayx.assets.toml`) for
+  the fonts or other assets it ships;
+- `android_java_dirs` for its Android Java sources;
+- any feature its dependencies need on a target, in the crate that needs it (for example a
+  `branches/std` feature enabled on wasm), instead of relying on the generated web entry crate.
+
+A **workspace** that relied on the Android pins `rayx` used to infer from one of its member
+names declares them in `[workspace.metadata.rayx]` (`android-platform`, `android-build-tools`,
+`android-ndk`).
+
+Gone: the implicit dependencies and the always-present `devkit` feature of the entry crates, the
+extra font asset root, the web entry crate's version pins, the name-based `[patch]` gate, the
+inferred Android pin profile, the generated page's diagnostics, and the library name in the DevKit
+bridge's message.
 
 ## Artifacts
 
