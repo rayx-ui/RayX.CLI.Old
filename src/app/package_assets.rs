@@ -1,11 +1,11 @@
+use crate::app::graph::{AppGraph, GraphPackage};
 use crate::app::{AppDescriptor, CargoMetadataContext};
 use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 use serde_json::Value;
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DiscoveredAssetPackage {
@@ -20,93 +20,10 @@ pub fn discover_package_assets(
     app: &AppDescriptor,
     context: &CargoMetadataContext,
 ) -> Result<Vec<DiscoveredAssetPackage>> {
-    let mut command = Command::new("cargo");
-    command
-        .arg("metadata")
-        .args(["--format-version", "1", "--manifest-path"])
-        .arg(app.manifest());
-    context.apply_to(&mut command)?;
-    let output = command
-        .stdin(Stdio::null())
-        .output()
-        .with_context(|| format!("running Cargo metadata for {}", app.manifest().display()))?;
-    if !output.status.success() {
-        bail!(
-            "cargo metadata failed for {}: {}",
-            app.manifest().display(),
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
-    let metadata = serde_json::from_slice::<CargoMetadata>(&output.stdout)
-        .with_context(|| format!("parsing Cargo metadata for {}", app.manifest().display()))?;
-    discover_from_metadata(app, metadata)
-}
-
-fn discover_from_metadata(
-    app: &AppDescriptor,
-    metadata: CargoMetadata,
-) -> Result<Vec<DiscoveredAssetPackage>> {
-    let app_manifest = fs::canonicalize(app.manifest())
-        .with_context(|| format!("canonicalizing {}", app.manifest().display()))?;
-    let packages = metadata
-        .packages
-        .into_iter()
-        .map(|package| (package.id.clone(), package))
-        .collect::<BTreeMap<_, _>>();
-    let mut app_package_id = None;
-    for package in packages.values() {
-        if canonical_manifest_path(&package.manifest_path)? == app_manifest {
-            app_package_id = Some(package.id.clone());
-            break;
-        }
-    }
-    let app_package_id = app_package_id.ok_or_else(|| {
-        anyhow::anyhow!(
-            "Cargo metadata did not contain selected app manifest {}",
-            app_manifest.display()
-        )
-    })?;
-    let resolve = metadata
-        .resolve
-        .ok_or_else(|| anyhow::anyhow!("Cargo metadata did not include a resolve graph"))?;
-    if let Some(root) = resolve.root.as_deref()
-        && root != app_package_id
-    {
-        bail!(
-            "Cargo metadata resolve.root {root} does not match selected app package {app_package_id}"
-        );
-    }
-    let nodes = resolve
-        .nodes
-        .into_iter()
-        .map(|node| (node.id.clone(), node))
-        .collect::<BTreeMap<_, _>>();
-    if !nodes.contains_key(&app_package_id) {
-        bail!("Cargo metadata resolve graph has no node for selected app {app_package_id}");
-    }
-
-    let mut queue = VecDeque::from([app_package_id.clone()]);
-    let mut visited = BTreeSet::new();
+    let graph = AppGraph::resolve(&app.manifest(), context)?;
     let mut discovered = Vec::new();
     let mut asset_ids = BTreeMap::<String, PathBuf>::new();
-    while let Some(package_id) = queue.pop_front() {
-        if !visited.insert(package_id.clone()) {
-            continue;
-        }
-        let node = nodes.get(&package_id).ok_or_else(|| {
-            anyhow::anyhow!("Cargo metadata resolve graph references missing node {package_id}")
-        })?;
-        for dependency in &node.deps {
-            if dependency.dep_kinds.iter().any(|kind| kind.kind.is_none()) {
-                queue.push_back(dependency.pkg.clone());
-            }
-        }
-        if package_id == app_package_id {
-            continue;
-        }
-        let package = packages.get(&package_id).ok_or_else(|| {
-            anyhow::anyhow!("Cargo metadata resolve graph references missing package {package_id}")
-        })?;
+    for package in graph.dependencies() {
         let Some(asset_manifest_path) = declared_asset_manifest(package)? else {
             continue;
         };
@@ -136,7 +53,7 @@ fn discover_from_metadata(
     Ok(discovered)
 }
 
-fn declared_asset_manifest(package: &CargoPackage) -> Result<Option<PathBuf>> {
+fn declared_asset_manifest(package: &GraphPackage) -> Result<Option<PathBuf>> {
     let Some(rayx) = package.metadata.get("rayx") else {
         return Ok(None);
     };
@@ -231,46 +148,6 @@ fn validate_asset_package_id(id: &str) -> Result<()> {
         bail!("asset package id must be lowercase kebab-case: {id}");
     }
     Ok(())
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoMetadata {
-    packages: Vec<CargoPackage>,
-    resolve: Option<CargoResolve>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoPackage {
-    id: String,
-    name: String,
-    manifest_path: PathBuf,
-    #[serde(default)]
-    metadata: Value,
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoResolve {
-    root: Option<String>,
-    nodes: Vec<CargoNode>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoNode {
-    id: String,
-    #[serde(default)]
-    deps: Vec<CargoNodeDependency>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoNodeDependency {
-    pkg: String,
-    #[serde(default)]
-    dep_kinds: Vec<CargoDependencyKind>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoDependencyKind {
-    kind: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

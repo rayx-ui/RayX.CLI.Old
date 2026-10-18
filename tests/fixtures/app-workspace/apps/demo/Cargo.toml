@@ -9,16 +9,19 @@ android_application_id = "dev.example.demo"
 ios_project = "Demo.xcodeproj"
 ios_scheme = "Demo"
 ios_bundle_id = "dev.example.demo"
+entry_dependencies = ["ui_runtime", "inspector"]
 
 [features]
 default = ["profile-all"]
 profile-all = ["profile-a", "profile-b"]
 profile-a = []
 profile-b = []
-devkit = ["dep:rayx_devkit"]
+inspect = ["dep:inspector"]
+store = ["dep:store_backend"]
 
 [dependencies]
-rayx = { path = "../../crates/rayx" }
-rayx_devkit = { path = "../../crates/rayx_devkit", optional = true }
+ui_runtime = { path = "../../crates/ui_runtime" }
+inspector = { path = "../../crates/inspector", optional = true }
 demo_components = { path = "../../crates/demo_components" }
 gpux-fonts = { path = "../../crates/gpux_fonts" }
+store_backend = { version = "0.1", optional = true }

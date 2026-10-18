@@ -9,6 +9,7 @@ mod context;
 mod descriptor;
 mod desktop;
 mod fs_util;
+pub mod graph;
 mod ios;
 mod package_assets;
 pub mod playwright;

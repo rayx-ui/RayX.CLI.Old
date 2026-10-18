@@ -2,14 +2,14 @@
 resolver = "2"
 members = [
     "apps/demo",
-    "crates/rayx",
-    "crates/rayx_devkit",
+    "crates/ui_runtime",
+    "crates/inspector",
     "crates/demo_components",
     "crates/gpux_fonts",
-    "patches/indxdb",
-    "patches/rexie",
+    "patches/store_backend",
+    "patches/unused_backend",
 ]
 
 [patch.crates-io]
-indxdb = { path = "patches/indxdb" }
-rexie = { path = "patches/rexie" }
+store_backend = { path = "patches/store_backend" }
+unused_backend = { path = "patches/unused_backend" }

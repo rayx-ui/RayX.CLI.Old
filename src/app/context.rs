@@ -50,23 +50,6 @@ impl ProjectContext {
             .find(|package| comparable(package.dir()) == wanted)
     }
 
-    /// The path a `[patch.<registry>] <name> = { path = ... }` entry of the workspace root
-    /// manifest points at, made absolute.
-    pub fn root_patch_path(&self, registry: &str, name: &str) -> Result<Option<PathBuf>> {
-        let manifest_path = self.workspace_root().join("Cargo.toml");
-        let text = std::fs::read_to_string(&manifest_path)
-            .with_context(|| format!("failed to read {}", manifest_path.display()))?;
-        let manifest: toml::Table = toml::from_str(&text)
-            .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
-        Ok(manifest
-            .get("patch")
-            .and_then(|patch| patch.get(registry))
-            .and_then(|registry| registry.get(name))
-            .and_then(|entry| entry.get("path"))
-            .and_then(|path| path.as_str())
-            .map(|path| self.workspace_root().join(path)))
-    }
-
     /// The manifest directory of a package in the app's resolved dependency graph, from
     /// `cargo metadata` of the app (for example the `gpux-fonts` package).
     pub fn resolved_package_dir(&self, package: &str, app_manifest: &Path) -> Result<PathBuf> {
@@ -126,25 +109,26 @@ fn comparable(path: &Path) -> String {
     }
 }
 
-/// The inline `Cargo.toml` table that depends on `dependency` from the same source the app does:
-/// its absolute path, its git repository and revision, or its registry version.
+/// The inline `Cargo.toml` table that declares `dependency` as the app does: the same source (its
+/// absolute path, its git repository and revision, or its registry version), `package` for a
+/// rename, `default-features = false`, `features` and `optional` (when `optional` is set).
 pub fn dependency_toml(dependency: &Dependency, optional: bool) -> Result<String> {
     let mut fields: Vec<String> = Vec::new();
     match (&dependency.path, dependency.source.as_deref()) {
-        (Some(path), _) => fields.push(format!("path = \"{}\"", cargo_path(path))),
+        (Some(path), _) => fields.push(format!("path = {}", toml_string(&cargo_path(path)))),
         (None, Some(source)) if source.starts_with("git+") => {
             let rest = source.trim_start_matches("git+");
             let rest = rest.split('#').next().unwrap_or(rest);
             let (url, query) = rest.split_once('?').unwrap_or((rest, ""));
-            fields.push(format!("git = \"{url}\""));
+            fields.push(format!("git = {}", toml_string(url)));
             if let Some((kind, value)) = query.split_once('=')
                 && matches!(kind, "rev" | "branch" | "tag")
             {
-                fields.push(format!("{kind} = \"{value}\""));
+                fields.push(format!("{kind} = {}", toml_string(value)));
             }
         }
         (None, Some(source)) if source.contains("crates.io") => {
-            fields.push(format!("version = \"{}\"", dependency.req));
+            fields.push(format!("version = {}", toml_string(&dependency.req)));
         }
         (None, Some(source)) => bail!(
             "the dependency `{}` comes from {source}, which generated entry crates cannot copy",
@@ -152,10 +136,30 @@ pub fn dependency_toml(dependency: &Dependency, optional: bool) -> Result<String
         ),
         (None, None) => bail!("the dependency `{}` has no source", dependency.name),
     }
+    if dependency.rename.is_some() {
+        fields.push(format!("package = {}", toml_string(&dependency.name)));
+    }
+    if !dependency.default_features {
+        fields.push("default-features = false".to_string());
+    }
+    if !dependency.features.is_empty() {
+        let features = dependency
+            .features
+            .iter()
+            .map(|feature| toml_string(feature))
+            .collect::<Vec<_>>()
+            .join(", ");
+        fields.push(format!("features = [{features}]"));
+    }
     if optional {
         fields.push("optional = true".to_string());
     }
     Ok(format!("{{ {} }}", fields.join(", ")))
+}
+
+/// `text` as a TOML basic string.
+pub(crate) fn toml_string(text: &str) -> String {
+    toml::Value::String(text.to_string()).to_string()
 }
 
 /// A path as written in a generated `Cargo.toml`: no verbatim prefix, forward slashes.

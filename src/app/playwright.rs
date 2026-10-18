@@ -598,7 +598,7 @@ mod tests {
         fs::create_dir_all(dir.join("demo")).unwrap();
         fs::write(
             workspace.root.join("apps/demo/Cargo.toml"),
-            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[package.metadata.rayx]\nplaywright_specs = [\"custom/\"]\nplaywright_projects = [\"chromium\"]\n[dependencies]\nrayx = { path = \"../../crates/rayx\" }\n",
+            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[package.metadata.rayx]\nplaywright_specs = [\"custom/\"]\nplaywright_projects = [\"chromium\"]\n[dependencies]\nui_runtime = { path = \"../../crates/ui_runtime\" }\n",
         )
         .unwrap();
         let app = workspace.app();

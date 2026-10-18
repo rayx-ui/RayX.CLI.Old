@@ -75,7 +75,7 @@ fn desktop_pack_writes_under_the_selected_workspace() {
 }
 
 #[test]
-fn entry_manifests_copy_the_apps_own_rayx_dependency() {
+fn entry_manifests_copy_the_apps_own_entry_dependency() {
     let workspace = Workspace::fixture("app-workspace");
     let mut app = workspace.app("apps/demo");
     let manifest_for = |app: &AppDescriptor| {
@@ -84,18 +84,18 @@ fn entry_manifests_copy_the_apps_own_rayx_dependency() {
             .expect("manifest");
         let text = fs::read_to_string(manifest).expect("read");
         text.lines()
-            .find(|line| line.starts_with("rayx = "))
-            .expect("the rayx dependency line")
+            .find(|line| line.starts_with("ui_runtime = "))
+            .expect("the ui_runtime dependency line")
             .to_string()
     };
 
-    // A path dependency: the absolute directory of the app's own `rayx`.
+    // A path dependency: the absolute directory of the app's own `ui_runtime`.
     let line = manifest_for(&app);
     assert!(line.contains("path = "), "{line}");
-    assert!(line.contains("crates/rayx\""), "{line}");
+    assert!(line.contains("crates/ui_runtime\""), "{line}");
     assert!(!line.contains("version"), "{line}");
 
-    let set_rayx = |app: &mut AppDescriptor, dependency: Dependency| {
+    let set_runtime = |app: &mut AppDescriptor, dependency: Dependency| {
         let package = app
             .context
             .project
@@ -103,63 +103,57 @@ fn entry_manifests_copy_the_apps_own_rayx_dependency() {
             .iter_mut()
             .find(|package| package.name == "rayx_demo")
             .expect("the app package");
-        package.dependencies.retain(|d| d.name != "rayx");
+        package.dependencies.retain(|d| d.name != "ui_runtime");
         package.dependencies.push(dependency);
     };
 
     // A git dependency keeps its revision.
-    set_rayx(
+    set_runtime(
         &mut app,
         Dependency {
-            name: "rayx".into(),
-            req: "*".into(),
-            source: Some("git+https://github.com/rayx-ui/RayX?rev=abc1234#abc1234def".into()),
-            path: None,
-            optional: false,
+            name: "ui_runtime".into(),
+            source: Some("git+https://example.com/ui/runtime?rev=abc1234#abc1234def".into()),
+            ..Dependency::default()
         },
     );
     assert_eq!(
         manifest_for(&app),
-        "rayx = { git = \"https://github.com/rayx-ui/RayX\", rev = \"abc1234\" }"
+        "ui_runtime = { git = \"https://example.com/ui/runtime\", rev = \"abc1234\" }"
     );
 
     // A registry dependency keeps its version requirement.
-    set_rayx(
+    set_runtime(
         &mut app,
         Dependency {
-            name: "rayx".into(),
+            name: "ui_runtime".into(),
             req: "^0.4".into(),
             source: Some("registry+https://github.com/rust-lang/crates.io-index".into()),
-            path: None,
-            optional: false,
+            ..Dependency::default()
         },
     );
-    assert_eq!(manifest_for(&app), "rayx = { version = \"^0.4\" }");
+    assert_eq!(manifest_for(&app), "ui_runtime = { version = \"^0.4\" }");
 }
 
 #[test]
 fn dependency_sources_that_cannot_be_copied_are_refused() {
     let private_registry = Dependency {
-        name: "rayx".into(),
-        req: "*".into(),
+        name: "ui_runtime".into(),
         source: Some("registry+https://registry.example.com/index".into()),
-        path: None,
-        optional: false,
+        ..Dependency::default()
     };
     let error = dependency_toml(&private_registry, false).expect_err("not copyable");
     assert!(format!("{error:#}").contains("registry.example.com"));
 
     let optional = Dependency {
-        name: "rayx_devkit".into(),
-        req: "*".into(),
-        source: None,
-        path: Some("/work/rayx/crates/rayx_devkit".into()),
+        name: "inspector".into(),
+        path: Some("/work/ui/crates/inspector".into()),
         optional: true,
+        ..Dependency::default()
     };
     let text = dependency_toml(&optional, true).expect("path dependency");
     assert_eq!(
         text,
-        "{ path = \"/work/rayx/crates/rayx_devkit\", optional = true }"
+        "{ path = \"/work/ui/crates/inspector\", optional = true }"
     );
 }
 
@@ -167,13 +161,8 @@ fn dependency_sources_that_cannot_be_copied_are_refused() {
 fn root_patches_come_from_the_selected_workspace() {
     let workspace = Workspace::fixture("app-workspace");
     let app = workspace.app("apps/demo");
-    fs::write(
-        app.manifest(),
-        "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[features]\nstorage = [\"dep:rayx_storage_surrealdb\"]\n[target.'cfg(target_family = \"wasm\")'.dependencies]\nrayx_storage_surrealdb = { version = \"0.1\", optional = true }\n",
-    )
-    .expect("write");
     let selection = AppFeatureSelection {
-        features: vec!["storage".into()],
+        features: vec!["store".into()],
         no_default_features: true,
         ..AppFeatureSelection::default()
     };
@@ -185,11 +174,11 @@ fn root_patches_come_from_the_selected_workspace() {
         .split("[patch.crates-io]")
         .nth(1)
         .expect("the patch table");
-    assert!(patches.contains("indxdb = { path = "), "{patches}");
-    assert!(patches.contains("patches/indxdb"), "{patches}");
-    assert!(patches.contains("rexie = { path = "), "{patches}");
+    assert!(patches.contains("store_backend = { path = "), "{patches}");
+    assert!(patches.contains("patches/store_backend"), "{patches}");
+    assert!(!patches.contains("unused_backend"), "{patches}");
     assert!(
-        !patches.contains("RayX"),
+        !patches.contains("RayX.CLI"),
         "no path from where rayx was built: {patches}"
     );
     let root = workspace.root.display().to_string().replace('\\', "/");

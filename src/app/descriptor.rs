@@ -1,6 +1,7 @@
 use crate::app::args::{take_bool_flag, take_flag_value};
-use crate::app::context::{ProjectContext, dependency_toml};
+use crate::app::context::{ProjectContext, dependency_toml, toml_string};
 use crate::app::fs_util::command_path;
+use crate::app::graph::AppGraph;
 use anyhow::{Context, Result, anyhow, bail};
 use std::collections::BTreeSet;
 use std::fs;
@@ -58,11 +59,18 @@ pub struct CargoMetadataContext {
 
 impl CargoMetadataContext {
     pub fn apply_to(&self, command: &mut Command) -> Result<()> {
+        command.args(self.args()?);
+        Ok(())
+    }
+
+    /// The `cargo` arguments of this selection.
+    pub fn args(&self) -> Result<Vec<String>> {
         if self.all_features && self.no_default_features {
             bail!("Cargo metadata context cannot combine all-features with no-default-features");
         }
+        let mut args = Vec::new();
         if let Some(target) = self.target.as_deref() {
-            command.args(["--filter-platform", target]);
+            args.extend(["--filter-platform".to_string(), target.to_string()]);
         }
         let features = self
             .features
@@ -71,17 +79,16 @@ impl CargoMetadataContext {
             .filter(|feature| !feature.is_empty())
             .collect::<std::collections::BTreeSet<_>>();
         if !features.is_empty() {
-            command
-                .arg("--features")
-                .arg(features.into_iter().collect::<Vec<_>>().join(","));
+            args.push("--features".to_string());
+            args.push(features.into_iter().collect::<Vec<_>>().join(","));
         }
         if self.all_features {
-            command.arg("--all-features");
+            args.push("--all-features".to_string());
         }
         if self.no_default_features {
-            command.arg("--no-default-features");
+            args.push("--no-default-features".to_string());
         }
-        Ok(())
+        Ok(args)
     }
 }
 
@@ -482,8 +489,8 @@ impl AppDescriptor {
         let manifest = root.join("Cargo.toml");
         let app_manifest = self.manifest();
         let package_name = package_name_from_manifest(&app_manifest)?;
-        let (enabled_app_features, generated_default_features) = if app_default_features {
-            (manifest_default_features(&app_manifest)?, Vec::new())
+        let generated_default_features = if app_default_features {
+            Vec::new()
         } else {
             selected_features.validate_for(&app_manifest)?;
             let mut features = if selected_features.all_features {
@@ -500,60 +507,64 @@ impl AppDescriptor {
                 .collect::<std::collections::BTreeSet<_>>()
                 .into_iter()
                 .collect::<Vec<_>>();
-            let generated_default_features = enabled_app_features
+            enabled_app_features
                 .iter()
                 .map(|feature| format!("{}/{feature}", self.rust_lib_name))
-                .collect::<Vec<_>>();
-            (enabled_app_features, generated_default_features)
-        };
-        let generated_devkit_dependency =
-            manifest_feature_contains(&app_manifest, "devkit", "dep:rayx_devkit")?;
-        let mut feature_lines = manifest_feature_names(&app_manifest)?
-            .into_iter()
-            .filter(|feature| feature != "devkit")
-            .map(|feature| format!("{feature} = [\"{}/{feature}\"]", self.rust_lib_name))
-            .collect::<Vec<_>>();
-        let devkit_feature_line = if manifest_has_feature(&app_manifest, "devkit")? {
-            let mut dependencies = vec![format!("{}/devkit", self.rust_lib_name)];
-            if generated_devkit_dependency {
-                dependencies.push("dep:rayx_devkit".to_string());
-            }
-            let dependencies = dependencies
-                .into_iter()
-                .map(|dependency| format!("\"{dependency}\""))
                 .collect::<Vec<_>>()
-                .join(", ");
-            format!("devkit = [{dependencies}]")
-        } else {
-            "devkit = []".to_string()
         };
-        feature_lines.push(devkit_feature_line);
-        // The entry crate depends on `rayx` (and `rayx_devkit`) from the same source the app does;
-        // an app that does not use RayX gets an entry crate without it.
-        let package = self.package()?;
-        let rayx_dependency_line = match package.dependency("rayx") {
-            Some(rayx) => format!(
-                "rayx = {}
-",
-                dependency_toml(rayx, false)?
-            ),
-            None => String::new(),
-        };
+        // Whether the project has a lock, before resolving the graph (which may write one).
+        let workspace_lock = self.context.workspace_root().join("Cargo.lock");
+        let workspace_has_lock = workspace_lock.is_file();
+        let app_value = read_manifest(&app_manifest)?;
+        let entry_dependencies = self.entry_dependencies(&app_value, &app_manifest)?;
+        let app_features = app_value.get("features").and_then(Value::as_table);
+        // Every app feature is forwarded; one that enables an optional entry dependency also
+        // enables it in the entry crate. No feature name is special.
+        let feature_lines = manifest_feature_names(&app_manifest)?
+            .into_iter()
+            .map(|feature| {
+                let mut members = vec![format!("{}/{feature}", self.rust_lib_name)];
+                let mut enabled = BTreeSet::new();
+                for dependency in &entry_dependencies {
+                    if dependency.optional
+                        && enabled.insert(dependency.key().to_string())
+                        && feature_enables_dependency(app_features, &feature, dependency.key())
+                    {
+                        members.push(format!("dep:{}", dependency.key()));
+                    }
+                }
+                let members = members
+                    .iter()
+                    .map(|member| toml_string(member))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                format!("{} = [{members}]", toml_key(&feature))
+            })
+            .collect::<Vec<_>>();
+        // The crates `main.rs` uses directly, declared as the app declares them.
+        let mut dependency_lines = String::new();
+        let mut target_lines = std::collections::BTreeMap::<String, String>::new();
+        for dependency in &entry_dependencies {
+            let line = format!(
+                "{} = {}\n",
+                toml_key(dependency.key()),
+                dependency_toml(dependency, dependency.optional)?
+            );
+            match &dependency.target {
+                Some(target) => target_lines
+                    .entry(target.clone())
+                    .or_default()
+                    .push_str(&line),
+                None => dependency_lines.push_str(&line),
+            }
+        }
+        let target_tables = target_lines
+            .iter()
+            .map(|(target, lines)| {
+                format!("\n[target.{}.dependencies]\n{lines}", toml_string(target))
+            })
+            .collect::<String>();
         let app_path = cargo_toml_path(&self.root);
-        let generated_devkit_dependency_line = if generated_devkit_dependency {
-            let devkit = package.dependency("rayx_devkit").ok_or_else(|| {
-                anyhow!(
-                    "app {} enables `dep:rayx_devkit` but declares no `rayx_devkit` dependency",
-                    self.root.display()
-                )
-            })?;
-            format!("rayx_devkit = {}\n", dependency_toml(devkit, true)?)
-        } else {
-            String::new()
-        };
-        // `rclite` (through `rxrust`) uses `branches` without `std`, whose nightly path calls
-        // `core::intrinsics::abort`, which current nightlies removed. With `std` it aborts through
-        // `std::process::abort`, which the threaded build's `build-std` provides.
         let generated_web_dependency_lines = if target == "web" {
             let bindgen = self.context.pins.wasm_bindgen.as_ref().ok_or_else(|| {
                 anyhow!(
@@ -562,24 +573,13 @@ impl AppDescriptor {
                 )
             })?;
             format!(
-                "wasm-bindgen = \"={}\"\nwasm-bindgen-futures = \"0.4\"\nzune-core = \"=0.5.1\"\nbranches = {{ version = \"0.4\", features = [\"std\"] }}\n",
+                "wasm-bindgen = \"={}\"\nwasm-bindgen-futures = \"0.4\"\n",
                 bindgen.value
             )
         } else {
             String::new()
         };
-        let generated_web_patch_lines = if target == "web" {
-            generated_web_patch_lines(
-                &self.context,
-                manifest_has_active_dependency(
-                    &app_manifest,
-                    "rayx_storage_surrealdb",
-                    &enabled_app_features,
-                )?,
-            )?
-        } else {
-            String::new()
-        };
+        let generated_patch_lines = self.generated_patch_tables(selected_features)?;
         let crate_type_line = crate_types
             .iter()
             .map(|crate_type| format!("\"{crate_type}\""))
@@ -615,9 +615,8 @@ default = [{}]
 {}
 
 [dependencies]
-{}{}{}{}
-{}
-"#,
+{}{}{}
+{}{}"#,
             self.slug,
             target,
             lib_name,
@@ -628,24 +627,22 @@ default = [{}]
                 .collect::<Vec<_>>()
                 .join(", "),
             feature_lines.join("\n"),
-            rayx_dependency_line,
-            generated_devkit_dependency_line,
+            dependency_lines,
             generated_web_dependency_lines,
             app_dependency_line,
-            generated_web_patch_lines
+            target_tables,
+            generated_patch_lines
         );
         fs::write(&manifest, manifest_text)
             .with_context(|| format!("writing {}", manifest.display()))?;
+        // Each entry crate is a workspace of its own and would resolve the newest crates, which
+        // can break a build the project's lockfile avoids; it starts from the project's lock.
         let lockfile = root.join("Cargo.lock");
         if lockfile.is_file() {
             fs::remove_file(&lockfile)
                 .with_context(|| format!("removing stale {}", lockfile.display()))?;
         }
-        // The iOS entry crate is a workspace of its own and would resolve the newest crates, which
-        // can break a native iOS build the project's lockfile avoids (`backtrace` 0.3.76 does not
-        // compile against `libc` 0.2.190 for iOS); it starts from the project's pins instead.
-        let workspace_lock = self.context.workspace_root().join("Cargo.lock");
-        if target == "ios" && workspace_lock.is_file() {
+        if workspace_has_lock {
             fs::copy(&workspace_lock, &lockfile).with_context(|| {
                 format!(
                     "seeding {} from {}",
@@ -667,6 +664,65 @@ mod rayx_app_main;
         fs::write(src_dir.join("lib.rs"), source)
             .with_context(|| format!("writing {}", src_dir.join("lib.rs").display()))?;
         Ok(manifest)
+    }
+
+    /// `[package.metadata.rayx] entry_dependencies`: the app's normal dependency declarations the
+    /// generated entry crates repeat, one per table that declares each listed key.
+    fn entry_dependencies(
+        &self,
+        app_value: &Value,
+        app_manifest: &Path,
+    ) -> Result<Vec<crate::project::Dependency>> {
+        let keys = match rayx_metadata(app_value).and_then(|rayx| rayx.get("entry_dependencies")) {
+            None => Vec::new(),
+            Some(value) => value
+                .as_array()
+                .and_then(|items| {
+                    items
+                        .iter()
+                        .map(|item| item.as_str().map(str::to_string))
+                        .collect::<Option<Vec<_>>>()
+                })
+                .ok_or_else(|| {
+                    anyhow!(
+                        "package.metadata.rayx.entry_dependencies in {} must be an array of dependency keys",
+                        app_manifest.display()
+                    )
+                })?,
+        };
+        let package = self.package()?;
+        let mut dependencies = Vec::new();
+        for key in keys.iter().collect::<BTreeSet<_>>() {
+            let declarations = package.dependencies_by_key(key);
+            if declarations.is_empty() {
+                bail!(
+                    "package.metadata.rayx.entry_dependencies lists `{key}`, which is not a normal dependency of {}",
+                    app_manifest.display()
+                );
+            }
+            dependencies.extend(declarations.into_iter().cloned());
+        }
+        Ok(dependencies)
+    }
+
+    /// The root `[patch]` tables the app's graph uses, for a generated entry crate.
+    fn generated_patch_tables(&self, features: &AppFeatureSelection) -> Result<String> {
+        let workspace_root = self.context.workspace_root();
+        let manifest_path = workspace_root.join("Cargo.toml");
+        let text = fs::read_to_string(&manifest_path)
+            .with_context(|| format!("failed to read {}", manifest_path.display()))?;
+        let root_manifest: toml::Table = toml::from_str(&text)
+            .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
+        if root_manifest.get("patch").is_none() {
+            return Ok(String::new());
+        }
+        let graph = AppGraph::resolve(&self.manifest(), &features.metadata_context())?;
+        patch_tables_for_graph(&root_manifest, workspace_root, &graph)
+    }
+
+    /// Whether the app's `[features]` table defines `feature`.
+    pub(crate) fn has_feature(&self, feature: &str) -> Result<bool> {
+        manifest_has_feature(&self.manifest(), feature)
     }
 
     pub fn android_launch_component(&self) -> Result<String> {
@@ -786,79 +842,55 @@ fn manifest_has_feature(manifest: &Path, feature: &str) -> Result<bool> {
         .is_some())
 }
 
-fn manifest_has_active_dependency(
-    manifest: &Path,
-    dependency: &str,
-    enabled_features: &[String],
-) -> Result<bool> {
-    let value = read_manifest(manifest)?;
-    let mut declarations = Vec::new();
-    if let Some(declaration) = value
-        .get("dependencies")
-        .and_then(|dependencies| dependencies.get(dependency))
-    {
-        declarations.push(declaration);
-    }
-    if let Some(targets) = value.get("target").and_then(Value::as_table) {
-        declarations.extend(targets.values().filter_map(|target| {
-            target
-                .get("dependencies")
-                .and_then(|dependencies| dependencies.get(dependency))
-        }));
-    }
-    if declarations.is_empty() {
-        return Ok(false);
-    }
-    if declarations.iter().any(|declaration| {
-        !declaration
-            .get("optional")
-            .and_then(Value::as_bool)
-            .unwrap_or(false)
-    }) {
-        return Ok(true);
-    }
-
-    let Some(features) = value.get("features").and_then(Value::as_table) else {
-        return Ok(enabled_features.iter().any(|feature| feature == dependency));
+/// Whether the app feature `feature` enables the optional dependency `key`, directly or through
+/// other features of the app's `[features]` table: a member `dep:<key>`, `<key>/<feature>` (not
+/// `<key>?/<feature>`), or the implicit feature `<key>` of an optional dependency the table never
+/// names with `dep:`.
+fn feature_enables_dependency(features: Option<&toml::Table>, feature: &str, key: &str) -> bool {
+    let Some(features) = features else {
+        return false;
     };
-    let mut pending = enabled_features.to_vec();
-    let mut visited = std::collections::BTreeSet::new();
-    while let Some(feature) = pending.pop() {
-        if feature == dependency {
-            return Ok(true);
-        }
-        if !visited.insert(feature.clone()) {
+    let dep_member = format!("dep:{key}");
+    let implicit = !features.values().any(|members| {
+        members
+            .as_array()
+            .is_some_and(|members| members.iter().any(|m| m.as_str() == Some(&dep_member)))
+    });
+    let mut pending = vec![feature.to_string()];
+    let mut visited = BTreeSet::new();
+    while let Some(current) = pending.pop() {
+        if !visited.insert(current.clone()) {
             continue;
         }
-        let Some(members) = features.get(&feature).and_then(Value::as_array) else {
+        let Some(members) = features.get(&current).and_then(Value::as_array) else {
             continue;
         };
         for member in members.iter().filter_map(Value::as_str) {
-            if member.strip_prefix("dep:") == Some(dependency)
-                || member
-                    .split_once('/')
-                    .is_some_and(|(name, _)| name == dependency)
+            if member == dep_member
+                || member.split_once('/').is_some_and(|(name, _)| name == key)
+                || (implicit && member == key && !features.contains_key(key))
             {
-                return Ok(true);
+                return true;
             }
             if features.contains_key(member) {
                 pending.push(member.to_string());
             }
         }
     }
-    Ok(false)
+    false
 }
 
-fn manifest_feature_contains(manifest: &Path, feature: &str, dependency: &str) -> Result<bool> {
-    let value = read_manifest(manifest)?;
-    Ok(value
-        .get("features")
-        .and_then(|features| features.get(feature))
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(Value::as_str)
-        .any(|value| value == dependency))
+/// A `Cargo.toml` key: bare when it can be, quoted otherwise.
+fn toml_key(key: &str) -> String {
+    if !key.is_empty()
+        && key
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_')
+    {
+        key.to_string()
+    } else {
+        toml_string(key)
+    }
 }
 
 fn manifest_default_features(manifest: &Path) -> Result<Vec<String>> {
@@ -893,26 +925,55 @@ fn rayx_metadata(value: &Value) -> Option<&Value> {
         .and_then(|metadata| metadata.get("rayx"))
 }
 
-/// The root workspace's patches a generated web manifest must repeat (patches only apply
-/// from the root of the workspace being built): the IndexedDB storage crates when the app
-/// enables SurrealDB storage.
-fn generated_web_patch_lines(context: &ProjectContext, storage: bool) -> Result<String> {
-    if !storage {
+/// The root manifest's `[patch.<registry or URL>]` entries whose patched package (`package`,
+/// else the key) is in `graph`, with relative paths made absolute under `workspace_root`, as
+/// `Cargo.toml` text; empty when none applies. Patches only apply from the root of the workspace
+/// being built, so each generated entry crate repeats the ones the app uses.
+pub fn patch_tables_for_graph(
+    root_manifest: &toml::Table,
+    workspace_root: &Path,
+    graph: &AppGraph,
+) -> Result<String> {
+    let Some(patch) = root_manifest.get("patch").and_then(Value::as_table) else {
         return Ok(String::new());
-    }
-    let mut crates_io = String::new();
-    for name in ["indxdb", "rexie"] {
-        if let Some(path) = context.root_patch_path("crates-io", name)? {
-            crates_io.push_str(&format!(
-                "{name} = {{ path = \"{}\" }}\n",
-                cargo_toml_path(&path)
-            ));
+    };
+    let mut rendered = String::new();
+    for (registry, entries) in patch {
+        let Some(entries) = entries.as_table() else {
+            continue;
+        };
+        let mut lines = String::new();
+        for (key, entry) in entries {
+            let mut entry = entry.clone();
+            let package = entry
+                .get("package")
+                .and_then(Value::as_str)
+                .unwrap_or(key)
+                .to_string();
+            if !graph.contains_name(&package) {
+                continue;
+            }
+            if let Some(table) = entry.as_table_mut()
+                && let Some(path) = table.get("path").and_then(Value::as_str)
+            {
+                let path = Path::new(path);
+                let absolute = if path.is_absolute() {
+                    path.to_path_buf()
+                } else {
+                    workspace_root.join(path)
+                };
+                table.insert(
+                    "path".to_string(),
+                    Value::String(cargo_toml_path(&absolute)),
+                );
+            }
+            lines.push_str(&format!("{} = {entry}\n", toml_key(key)));
+        }
+        if !lines.is_empty() {
+            rendered.push_str(&format!("\n[patch.{}]\n{lines}", toml_key(registry)));
         }
     }
-    if crates_io.is_empty() {
-        return Ok(String::new());
-    }
-    Ok(format!("\n[patch.crates-io]\n{crates_io}"))
+    Ok(rendered)
 }
 
 fn cargo_toml_path(path: &Path) -> String {
@@ -962,13 +1023,8 @@ mod tests {
         )
     }
 
-    fn root_patch(app: &AppDescriptor, registry: &str, name: &str) -> String {
-        let path = app
-            .context
-            .root_patch_path(registry, name)
-            .expect("root Cargo.toml parses")
-            .expect("the workspace patches this crate");
-        cargo_toml_path(&path)
+    fn root_patch(app: &AppDescriptor, relative: &str) -> String {
+        cargo_toml_path(&app.context.workspace_root().join(relative))
     }
 
     #[test]
@@ -1012,7 +1068,7 @@ mod tests {
     }
 
     #[test]
-    fn android_entry_manifest_is_generated_from_the_apps_own_rayx_dependency() -> TestResult {
+    fn android_entry_manifest_is_generated_from_the_apps_entry_dependencies() -> TestResult {
         let workspace = FixtureWorkspace::new();
         let app = workspace.app();
 
@@ -1021,8 +1077,8 @@ mod tests {
         let text = std::fs::read_to_string(&manifest)?;
         assert!(text.contains("[workspace]"));
         assert!(text.contains("crate-type = [\"cdylib\"]"));
-        assert!(text.contains("rayx = { path = "));
-        assert!(text.contains("crates/rayx\" }"));
+        assert!(text.contains("ui_runtime = { path = "));
+        assert!(text.contains("crates/ui_runtime\" }"));
         assert!(text.contains("rayx_demo = { package = \"rayx_demo\", path = "));
         assert!(text.contains("default = [\"rayx_demo/profile-all\"]"));
 
@@ -1078,28 +1134,29 @@ mod tests {
     }
 
     #[test]
-    fn the_ios_entry_crate_starts_from_the_workspace_lockfile() -> TestResult {
+    fn every_entry_crate_starts_from_the_workspace_lockfile() -> TestResult {
         let workspace = FixtureWorkspace::new();
         let app = workspace.app();
         let workspace_lock = app.context.workspace_root().join("Cargo.lock");
-        std::fs::write(&workspace_lock, "# the project's pins\nversion = 4\n")?;
-        let generated_root = app.temp_root()?.join("ios").join("rust");
-        std::fs::create_dir_all(&generated_root)?;
-        std::fs::write(generated_root.join("Cargo.lock"), "stale lock")?;
+        for (target, manifest) in [
+            (
+                "android",
+                AppDescriptor::android_rust_manifest as fn(&_, &_) -> _,
+            ),
+            ("ios", AppDescriptor::ios_rust_manifest),
+            ("wasm", AppDescriptor::web_manifest),
+        ] {
+            let generated_root = app.temp_root()?.join(target).join("rust");
+            std::fs::create_dir_all(&generated_root)?;
+            std::fs::write(generated_root.join("Cargo.lock"), "stale lock")?;
 
-        app.ios_rust_manifest(&AppFeatureSelection::default())?;
-        assert_eq!(
-            std::fs::read_to_string(generated_root.join("Cargo.lock"))?,
-            "# the project's pins\nversion = 4\n",
-            "the stale lock is replaced by the project's"
-        );
-
-        // The other generated crates still resolve on their own.
-        let android = app.temp_root()?.join("android").join("rust");
-        std::fs::create_dir_all(&android)?;
-        std::fs::write(android.join("Cargo.lock"), "stale lock")?;
-        app.android_rust_manifest(&AppFeatureSelection::default())?;
-        assert!(!android.join("Cargo.lock").exists());
+            manifest(&app, &AppFeatureSelection::default())?;
+            assert_eq!(
+                std::fs::read(generated_root.join("Cargo.lock"))?,
+                std::fs::read(&workspace_lock)?,
+                "the stale {target} lock is replaced by the project's"
+            );
+        }
         Ok(())
     }
 
@@ -1108,12 +1165,9 @@ mod tests {
         let workspace = FixtureWorkspace::new();
         let app = workspace.app();
         let generated_root = app.temp_root()?.join("wasm").join("rust");
-        std::fs::create_dir_all(&generated_root)?;
-        std::fs::write(generated_root.join("Cargo.lock"), "stale lock")?;
 
         let manifest = app.web_manifest(&AppFeatureSelection::default())?;
         assert!(manifest.starts_with(&generated_root));
-        assert!(!generated_root.join("Cargo.lock").exists());
         assert_eq!(app.web_module_base(), "rayx_demo_web");
 
         let text = std::fs::read_to_string(&manifest)?;
@@ -1121,31 +1175,32 @@ mod tests {
         assert!(text.contains("crate-type = [\"cdylib\", \"rlib\"]"));
         assert!(text.contains("default-features = false"));
         assert!(text.contains("wasm-bindgen = \"=0.2.129\""));
-        assert!(text.contains("zune-core = \"=0.5.1\""));
-        assert!(text.contains("branches = { version = \"0.4\", features = [\"std\"] }"));
+        assert!(!text.contains("zune-core"));
+        assert!(!text.contains("branches"));
         assert!(!text.contains("[patch"));
         Ok(())
     }
 
     #[test]
-    fn web_manifest_repeats_the_root_storage_patches_only_for_active_storage() -> TestResult {
+    fn root_patches_follow_the_apps_graph_for_the_selected_features() -> TestResult {
         let workspace = FixtureWorkspace::new();
         let app = workspace.app();
-        let storage_app = "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[features]\nstorage-fixture = [\"dep:rayx_storage_surrealdb\"]\n[target.'cfg(target_family = \"wasm\")'.dependencies]\nrayx_storage_surrealdb = { version = \"0.1\", optional = true }\n";
-        rewrite_app_manifest(&workspace, storage_app)?;
 
         let text = std::fs::read_to_string(app.web_manifest(&AppFeatureSelection::default())?)?;
-        assert!(!text.contains("[patch.crates-io]"));
+        assert!(!text.contains("[patch.crates-io]"), "{text}");
 
         let selection = AppFeatureSelection {
-            features: vec!["storage-fixture".to_string()],
+            features: vec!["store".to_string()],
             no_default_features: true,
             ..AppFeatureSelection::default()
         };
         let text = std::fs::read_to_string(app.web_manifest(&selection)?)?;
-        assert!(text.contains("[patch.crates-io]"));
-        assert!(text.contains(&root_patch(&app, "crates-io", "indxdb")));
-        assert!(text.contains(&root_patch(&app, "crates-io", "rexie")));
+        assert!(text.contains("[patch.crates-io]"), "{text}");
+        assert!(
+            text.contains(&root_patch(&app, "patches/store_backend")),
+            "{text}"
+        );
+        assert!(!text.contains("unused_backend"), "{text}");
         Ok(())
     }
 
@@ -1172,7 +1227,7 @@ mod tests {
     }
 
     #[test]
-    fn all_features_forwards_every_feature_and_the_devkit_dependency() -> TestResult {
+    fn all_features_forwards_every_feature_and_the_optional_entry_dependency() -> TestResult {
         let workspace = FixtureWorkspace::new();
         let app = workspace.app();
         let selection = AppFeatureSelection {
@@ -1182,24 +1237,25 @@ mod tests {
 
         let text = std::fs::read_to_string(app.android_rust_manifest(&selection)?)?;
         assert!(text.contains("profile-a = [\"rayx_demo/profile-a\"]"));
-        assert!(text.contains("devkit = [\"rayx_demo/devkit\", \"dep:rayx_devkit\"]"));
-        assert!(text.contains("rayx_devkit = { path = "));
+        assert!(text.contains("inspect = [\"rayx_demo/inspect\", \"dep:inspector\"]"));
+        assert!(text.contains("inspector = { path = "));
         assert!(text.contains(", optional = true }"));
+        assert!(!text.contains("devkit"), "{text}");
         Ok(())
     }
 
     #[test]
-    fn an_app_without_a_rayx_dependency_gets_an_entry_crate_without_it() -> TestResult {
+    fn an_app_without_entry_dependencies_gets_an_entry_crate_with_only_its_library() -> TestResult {
         let workspace = FixtureWorkspace::new();
         rewrite_app_manifest(
             &workspace,
-            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nui_runtime = { path = \"../../crates/ui_runtime\" }\n",
         )?;
         let app = workspace.app();
 
         let manifest = app.web_manifest(&AppFeatureSelection::default())?;
         let text = std::fs::read_to_string(manifest)?;
-        assert!(!text.contains("rayx = "), "{text}");
+        assert!(!text.contains("ui_runtime"), "{text}");
         assert!(text.contains("rayx_demo = { package = \"rayx_demo\""));
         Ok(())
     }
@@ -1251,7 +1307,7 @@ mod tests {
 
         rewrite_app_manifest(
             &workspace,
-            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[package.metadata.rayx]\nplaywright_specs = [\"demo/\", \"shared/a.spec.ts\"]\nplaywright_projects = [\"chromium\"]\n[dependencies]\nrayx = { path = \"../../crates/rayx\" }\n",
+            "[package]\nname = \"rayx_demo\"\nversion = \"0.1.0\"\n[package.metadata.rayx]\nplaywright_specs = [\"demo/\", \"shared/a.spec.ts\"]\nplaywright_projects = [\"chromium\"]\n[dependencies]\nui_runtime = { path = \"../../crates/ui_runtime\" }\n",
         )?;
         let app = workspace.app();
         assert_eq!(

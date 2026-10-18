@@ -15,6 +15,14 @@ pub use pins::{Pin, PinSource, Pins};
 pub struct Dependency {
     /// The package name (not a rename).
     pub name: String,
+    /// The key the package declares it under when it differs from the package name.
+    pub rename: Option<String>,
+    /// The `[target.'<cfg>'.dependencies]` table it is declared in; `None` for `[dependencies]`.
+    pub target: Option<String>,
+    /// The features the declaration enables.
+    pub features: Vec<String>,
+    /// `false` for `default-features = false`.
+    pub default_features: bool,
     /// The version requirement, `*` when there is none.
     pub req: String,
     /// `registry+<url>` or `git+<url>[?rev=|branch=|tag=...]`; `None` for a path dependency.
@@ -22,6 +30,30 @@ pub struct Dependency {
     /// The absolute directory of a path dependency.
     pub path: Option<PathBuf>,
     pub optional: bool,
+}
+
+impl Default for Dependency {
+    /// A plain `[dependencies]` entry with default features.
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            rename: None,
+            target: None,
+            features: Vec::new(),
+            default_features: true,
+            req: "*".to_string(),
+            source: None,
+            path: None,
+            optional: false,
+        }
+    }
+}
+
+impl Dependency {
+    /// The key the declaring manifest uses: the rename, else the package name.
+    pub fn key(&self) -> &str {
+        self.rename.as_deref().unwrap_or(&self.name)
+    }
 }
 
 /// A Cargo workspace package.
@@ -39,6 +71,15 @@ impl Package {
     /// The directory holding the package's manifest.
     pub fn dir(&self) -> &Path {
         self.manifest_path.parent().unwrap_or(Path::new("."))
+    }
+
+    /// The normal dependency declarations under this key (a rename, else the package name), one
+    /// per table that declares it.
+    pub fn dependencies_by_key(&self, key: &str) -> Vec<&Dependency> {
+        self.dependencies
+            .iter()
+            .filter(|dependency| dependency.key() == key)
+            .collect()
     }
 
     /// The first non-development dependency with this package name.
@@ -199,6 +240,17 @@ impl Project {
                                 .filter_map(|dep| {
                                     Some(Dependency {
                                         name: dep["name"].as_str()?.to_string(),
+                                        rename: dep["rename"].as_str().map(str::to_string),
+                                        target: dep["target"].as_str().map(str::to_string),
+                                        features: dep["features"]
+                                            .as_array()
+                                            .into_iter()
+                                            .flatten()
+                                            .filter_map(|f| f.as_str().map(str::to_string))
+                                            .collect(),
+                                        default_features: dep["uses_default_features"]
+                                            .as_bool()
+                                            .unwrap_or(true),
                                         req: dep["req"].as_str().unwrap_or("*").to_string(),
                                         source: dep["source"].as_str().map(str::to_string),
                                         path: dep["path"].as_str().map(PathBuf::from),
@@ -297,55 +349,82 @@ impl Project {
     }
 }
 
-/// The `[dependencies]` of a manifest, for when cargo cannot report them. Inherited
-/// (`workspace = true`) dependencies are not resolved.
+/// The `[dependencies]` and `[target.'<cfg>'.dependencies]` of a manifest, for when cargo cannot
+/// report them. Inherited (`workspace = true`) dependencies are not resolved.
 fn manifest_dependencies(table: &toml::Table, dir: &Path) -> Vec<Dependency> {
-    let Some(dependencies) = table.get("dependencies").and_then(toml::Value::as_table) else {
-        return Vec::new();
-    };
-    dependencies
-        .iter()
-        .map(|(key, value)| {
-            let table = value.as_table();
-            let name = table
-                .and_then(|t| t.get("package"))
-                .and_then(toml::Value::as_str)
-                .unwrap_or(key)
-                .to_string();
-            let string = |field: &str| {
-                table
-                    .and_then(|t| t.get(field))
-                    .and_then(toml::Value::as_str)
-            };
-            let path = string("path").map(|path| absolute(&dir.join(path)));
-            let source = if path.is_some() {
-                None
-            } else if let Some(git) = string("git") {
-                let query = ["rev", "branch", "tag"]
-                    .iter()
-                    .find_map(|kind| string(kind).map(|value| format!("?{kind}={value}")))
-                    .unwrap_or_default();
-                Some(format!("git+{git}{query}"))
-            } else {
-                Some("registry+https://github.com/rust-lang/crates.io-index".to_string())
-            };
-            let req = value
-                .as_str()
-                .or_else(|| string("version"))
-                .unwrap_or("*")
-                .to_string();
-            Dependency {
-                name,
-                req,
-                source,
-                path,
-                optional: table
-                    .and_then(|t| t.get("optional"))
-                    .and_then(toml::Value::as_bool)
-                    .unwrap_or(false),
+    let mut tables: Vec<(Option<String>, &toml::Table)> = Vec::new();
+    if let Some(dependencies) = table.get("dependencies").and_then(toml::Value::as_table) {
+        tables.push((None, dependencies));
+    }
+    if let Some(targets) = table.get("target").and_then(toml::Value::as_table) {
+        for (target, value) in targets {
+            if let Some(dependencies) = value.get("dependencies").and_then(toml::Value::as_table) {
+                tables.push((Some(target.clone()), dependencies));
             }
+        }
+    }
+    tables
+        .into_iter()
+        .flat_map(|(target, dependencies)| {
+            dependencies
+                .iter()
+                .map(move |(key, value)| manifest_dependency(key, value, target.clone(), dir))
         })
         .collect()
+}
+
+fn manifest_dependency(
+    key: &str,
+    value: &toml::Value,
+    target: Option<String>,
+    dir: &Path,
+) -> Dependency {
+    let table = value.as_table();
+    let string = |field: &str| {
+        table
+            .and_then(|t| t.get(field))
+            .and_then(toml::Value::as_str)
+    };
+    let name = string("package").unwrap_or(key).to_string();
+    let path = string("path").map(|path| absolute(&dir.join(path)));
+    let source = if path.is_some() {
+        None
+    } else if let Some(git) = string("git") {
+        let query = ["rev", "branch", "tag"]
+            .iter()
+            .find_map(|kind| string(kind).map(|value| format!("?{kind}={value}")))
+            .unwrap_or_default();
+        Some(format!("git+{git}{query}"))
+    } else {
+        Some("registry+https://github.com/rust-lang/crates.io-index".to_string())
+    };
+    let req = value
+        .as_str()
+        .or_else(|| string("version"))
+        .unwrap_or("*")
+        .to_string();
+    let flag = |field: &str| {
+        table
+            .and_then(|t| t.get(field))
+            .and_then(toml::Value::as_bool)
+    };
+    Dependency {
+        rename: (name != key).then(|| key.to_string()),
+        name,
+        target,
+        features: table
+            .and_then(|t| t.get("features"))
+            .and_then(toml::Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(|f| f.as_str().map(str::to_string))
+            .collect(),
+        default_features: flag("default-features").unwrap_or(true),
+        req,
+        source,
+        path,
+        optional: flag("optional").unwrap_or(false),
+    }
 }
 
 fn read_manifest(path: &Path) -> Option<toml::Table> {
