@@ -4,6 +4,10 @@
 //! that follows the same source rules and has a comment above it linking the upstream issue or pull
 //! request. Forbidden: `path` dependencies, git dependencies on a `branch`, a `tag` or nothing,
 //! anything from the private `rayx-ui/RayX` repository, and `[replace]`.
+//!
+//! On top of these source rules the CLI depends on no gpux or RayX library at all, whatever its
+//! source (a pinned public git dependency on Gpux included): `tests/library_agnostic.rs` enforces
+//! that for `Cargo.toml` and `Cargo.lock`.
 
 use std::fs;
 use std::path::PathBuf;
