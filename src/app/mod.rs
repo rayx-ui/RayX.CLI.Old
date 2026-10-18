@@ -22,7 +22,10 @@ mod wasm;
 pub use context::{ProjectContext, dependency_toml};
 pub use descriptor::*;
 pub use desktop::desktop_target_triple;
-pub use wasm::{cargo_build_command as wasm_cargo_command, check_wasm_bindgen_version};
+pub use wasm::{
+    FALLBACK_WEB_PAGE, cargo_build_command as wasm_cargo_command, check_wasm_bindgen_version,
+    render_web_page,
+};
 
 use anyhow::{Context, Result, bail};
 use args::{take_bool_flag, take_profile};

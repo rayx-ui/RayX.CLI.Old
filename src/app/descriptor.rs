@@ -352,6 +352,11 @@ impl AppDescriptor {
         }
     }
 
+    /// The app's own web host page, `platform/web/index.html`.
+    pub fn web_page(&self) -> PathBuf {
+        self.root.join("platform").join("web").join("index.html")
+    }
+
     pub fn ios_dir(&self) -> PathBuf {
         self.root.join("platform").join("ios")
     }

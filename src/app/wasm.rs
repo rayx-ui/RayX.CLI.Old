@@ -17,88 +17,101 @@ use std::time::Duration;
 const WASM_RUSTFLAGS: &str = "-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--shared-memory -C link-arg=--import-memory -C link-arg=--max-memory=2147483648 -C link-arg=--export=__heap_base -C link-arg=--export=__wasm_init_tls -C link-arg=--export=__tls_size -C link-arg=--export=__tls_align -C link-arg=--export=__tls_base -Awarnings";
 const WASM_CFLAGS: &str = "-matomics -mbulk-memory -mmutable-globals";
 
-fn html_island_diagnostics_bootstrap() -> &'static str {
-    r#"
-    const detectHtmlIslandSupport = () => {
-      const probeCanvas = document.createElement('canvas');
-      const canvasContext = probeCanvas.getContext?.('2d');
-      const hasMethod = (owner, name) => owner != null && typeof owner[name] === 'function';
-      const hasProperty = (owner, name) => owner != null && name in owner;
-      const canvasLayoutSubtree = hasProperty(probeCanvas, 'layoutSubtree')
-        ? 'layoutSubtree'
-        : hasProperty(probeCanvas, 'layoutsubtree')
-          ? 'layoutsubtree'
-          : null;
-      const probes = {
-        canvasLayoutSubtree,
-        canvasPaintEvent: hasProperty(probeCanvas, 'onpaint') ? 'paint' : null,
-        canvasRequestPaint: hasMethod(probeCanvas, 'requestPaint') ? 'requestPaint' : null,
-        globalCaptureElementImage: hasMethod(globalThis, 'captureElementImage')
-          ? 'captureElementImage'
-          : null,
-        elementCaptureElementImage: hasMethod(globalThis.Element?.prototype, 'captureElementImage')
-          ? 'Element.prototype.captureElementImage'
-          : null,
-        canvasDrawElementImage: hasMethod(canvasContext, 'drawElementImage')
-          ? 'CanvasRenderingContext2D.drawElementImage'
-          : null,
-        gpuQueueCopyElementImageToTexture: hasMethod(
-          globalThis.GPUQueue?.prototype,
-          'copyElementImageToTexture',
+/// The page `rayx` writes when the app has no `platform/web/index.html`: the module script and
+/// nothing an app decides (no diagnostics, no library globals). It uses the same placeholders
+/// as an app's own page, so it is the starting template for one.
+pub const FALLBACK_WEB_PAGE: &str = r#"<!doctype html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>__RAYX_TITLE__ WASM</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; color: #111827; }
+    body { font-family: system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import init, { run } from '__RAYX_MODULE__';
+    await init();
+    await run();
+    document.body.dataset.rayxWasm = 'started';
+  </script>
+</body>
+</html>
+"#;
+
+/// The web host page of `app`: its `platform/web/index.html`, else [`FALLBACK_WEB_PAGE`], with
+/// `__RAYX_MODULE__` (the wasm-bindgen module URL), `__RAYX_TITLE__` (the slug) and
+/// `__RAYX_DIAGNOSTICS__` (`true`/`false`) replaced. Any other `__RAYX_<NAME>__` token is an
+/// error naming the token, the page and its line.
+pub fn render_web_page(app: &AppDescriptor, features: &AppFeatureSelection) -> Result<String> {
+    let page = app.web_page();
+    let (source, template) = if page.is_file() {
+        let text = fs::read_to_string(&page)
+            .with_context(|| format!("reading the web page {}", page.display()))?;
+        (page.display().to_string(), text)
+    } else {
+        (
+            "the built-in fallback page".to_string(),
+            FALLBACK_WEB_PAGE.to_string(),
         )
-          ? 'GPUQueue.copyElementImageToTexture'
-          : null,
-        gpuQueueCopyExternalImageToTexture: hasMethod(
-          globalThis.GPUQueue?.prototype,
-          'copyExternalImageToTexture',
-        )
-          ? 'GPUQueue.copyExternalImageToTexture'
-          : null,
-      };
-      const support = {
-        layoutSubtree: probes.canvasLayoutSubtree !== null,
-        paintEvent: probes.canvasPaintEvent !== null,
-        requestPaint: probes.canvasRequestPaint !== null,
-        captureElementImage:
-          probes.globalCaptureElementImage !== null || probes.elementCaptureElementImage !== null,
-        drawElementImage: probes.canvasDrawElementImage !== null,
-        copyElementImageToTexture: probes.gpuQueueCopyElementImageToTexture !== null,
-        copyExternalImageToTexture: probes.gpuQueueCopyExternalImageToTexture !== null,
-      };
-      return { probes, support };
     };
-    const htmlIslandSupport = detectHtmlIslandSupport();
-    const htmlIslandSearch = new URLSearchParams(globalThis.location?.search ?? '');
-    const htmlIslandEnabledValue = htmlIslandSearch.get('rayx-html-island');
-    globalThis.__rayxHtmlIslandEnabled =
-      htmlIslandEnabledValue === '1' || htmlIslandEnabledValue === 'true';
-    globalThis.__rayxHtmlIslandDiagnostics = {
-      version: 1,
-      available: false,
-      probes: htmlIslandSupport.probes,
-      support: htmlIslandSupport.support,
-      canvas: {
-        layoutSubtreeEnabled: false,
-        childCount: 0,
-      },
-      islands: {
-        count: 0,
-        dirtyCount: 0,
-        uploadCount: 0,
-        textureReallocationCount: 0,
-      },
-      renderer: {
-        path: 'unsupported',
-        lastError: null,
-      },
+    let module = format!("/{}.js", app.web_module_base());
+    let diagnostics = if diagnostics_enabled(features) {
+        "true"
+    } else {
+        "false"
     };
-    globalThis.__rayxHtmlIslandDiagnostics.available =
-      htmlIslandSupport.support.layoutSubtree
-      && htmlIslandSupport.support.paintEvent
-      && htmlIslandSupport.support.requestPaint
-      && htmlIslandSupport.support.captureElementImage
-      && htmlIslandSupport.support.copyElementImageToTexture;
-"#
+    substitute_page(
+        &template,
+        &source,
+        &[
+            ("__RAYX_MODULE__", module.as_str()),
+            ("__RAYX_TITLE__", app.slug.as_str()),
+            ("__RAYX_DIAGNOSTICS__", diagnostics),
+        ],
+    )
+}
+
+fn substitute_page(template: &str, source: &str, values: &[(&str, &str)]) -> Result<String> {
+    const PREFIX: &str = "__RAYX_";
+    let mut out = String::with_capacity(template.len());
+    for (index, line) in template.split_inclusive('\n').enumerate() {
+        let mut rest = line;
+        while let Some(start) = rest.find(PREFIX) {
+            out.push_str(&rest[..start]);
+            let candidate = &rest[start..];
+            if let Some((token, value)) = values
+                .iter()
+                .find(|(token, _)| candidate.starts_with(token))
+            {
+                out.push_str(value);
+                rest = &candidate[token.len()..];
+                continue;
+            }
+            // The shortest `__RAYX_<NAME>__` here, if any, is a placeholder nobody knows.
+            let name = &candidate[PREFIX.len()..];
+            let run = name
+                .find(|ch: char| !(ch.is_ascii_uppercase() || ch.is_ascii_digit() || ch == '_'))
+                .unwrap_or(name.len());
+            if let Some(end) = name[..run].find("__").filter(|end| *end > 0) {
+                bail!(
+                    "unknown placeholder {} in {source} line {}: the web page knows __RAYX_MODULE__, __RAYX_TITLE__ and __RAYX_DIAGNOSTICS__",
+                    &candidate[..PREFIX.len() + end + 2],
+                    index + 1
+                );
+            }
+            out.push_str(PREFIX);
+            rest = name;
+        }
+        out.push_str(rest);
+    }
+    Ok(out)
 }
 
 pub fn build(
@@ -315,6 +328,8 @@ fn build_with_profile(
     features: &AppFeatureSelection,
 ) -> Result<PathBuf> {
     let root = app.context.workspace_root().to_path_buf();
+    // The page is read and checked first, so a placeholder typo fails before anything builds.
+    let page = render_web_page(app, features)?;
     ensure_wasm_bindgen_cli(app)?;
     let web_manifest = app.web_manifest(features)?;
     let module_base = app.web_module_base();
@@ -342,12 +357,8 @@ fn build_with_profile(
         ]),
     )?;
     verify_threaded_wasm(&out_dir.join(format!("{module_base}_bg.wasm")))?;
-    write_wasm_host(
-        &out_dir,
-        &module_base,
-        &app.slug,
-        diagnostics_enabled(features),
-    )?;
+    fs::write(out_dir.join("index.html"), &page)
+        .with_context(|| format!("writing {}", out_dir.join("index.html").display()))?;
     copy_app_assets(app, features, &out_dir)?;
     assets::package_app_content(app, &out_dir)?;
     println!(
@@ -571,71 +582,6 @@ fn read_wasm_byte(wasm: &[u8], offset: &mut usize, section_end: usize) -> Result
     let byte = wasm[*offset];
     *offset += 1;
     Ok(byte)
-}
-
-fn write_wasm_host(
-    out_dir: &Path,
-    module_base: &str,
-    title: &str,
-    diagnostics_enabled: bool,
-) -> Result<()> {
-    let html = r#"<!doctype html>
-<html lang="en">
-<head>
-  <base href="/" />
-  <meta charset="utf-8" />
-  <base href="/" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:," />
-  <title>__TITLE__ WASM</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; background: #f8fafc; color: #111827; }
-    body { font-family: system-ui, sans-serif; }
-    __DIAGNOSTIC_STYLE__
-  </style>
-</head>
-<body>
-  __DIAGNOSTIC_STATUS__
-  <script type="module">
-    import init, { run } from '/__MODULE__.js';
-__HTML_ISLAND_DIAGNOSTICS__
-__DIAGNOSTIC_MARK_STATUS__
-    __DIAGNOSTIC_BEFORE_RUN__
-    await init();
-    await run();
-    __DIAGNOSTIC_AFTER_RUN__
-    document.body.dataset.rayxWasm = 'started';
-  </script>
-</body>
-</html>
-"#
-    .replace("__MODULE__", module_base)
-    .replace("__TITLE__", title)
-    .replace(
-        "__DIAGNOSTIC_STYLE__",
-        if diagnostics_enabled { "#webgpu-status, #wasm-thread-status { display: none; }" } else { "" },
-    )
-    .replace(
-        "__DIAGNOSTIC_STATUS__",
-        if diagnostics_enabled {
-            "<div id=\"wasm-thread-status\" data-threads=\"checking\">WASM threads: checking</div>\n  <div id=\"webgpu-status\" data-webgpu=\"checking\">WebGPU: checking</div>"
-        } else { "" },
-    )
-    .replace(
-        "__HTML_ISLAND_DIAGNOSTICS__",
-        if diagnostics_enabled { html_island_diagnostics_bootstrap() } else { "" },
-    )
-    .replace(
-        "__DIAGNOSTIC_MARK_STATUS__",
-        if diagnostics_enabled {
-            "    const webgpuStatus = document.getElementById('webgpu-status');\n    const threadStatus = document.getElementById('wasm-thread-status');\n    const markStatus = () => {\n      const threadDiagnostics = { crossOriginIsolated: globalThis.crossOriginIsolated === true, sharedArrayBufferAvailable: typeof globalThis.SharedArrayBuffer === 'function', atomicsAvailable: typeof globalThis.Atomics === 'object', atomicsWaitAsyncAvailable: typeof globalThis.Atomics?.waitAsync === 'function' };\n      const threadsAvailable = threadDiagnostics.crossOriginIsolated && threadDiagnostics.sharedArrayBufferAvailable && threadDiagnostics.atomicsAvailable && threadDiagnostics.atomicsWaitAsyncAvailable;\n      webgpuStatus.textContent = navigator.gpu ? 'WebGPU: available' : 'WebGPU: unavailable';\n      webgpuStatus.dataset.webgpu = navigator.gpu ? 'available' : 'unavailable';\n      threadStatus.textContent = threadsAvailable ? 'WASM threads: available' : 'WASM threads: unavailable';\n      threadStatus.dataset.threads = threadsAvailable ? 'available' : 'unavailable';\n      document.body.dataset.rayxThreads = threadStatus.dataset.threads;\n      globalThis.__rayxThreadDiagnostics = threadDiagnostics;\n    };"
-        } else { "" },
-    )
-    .replace("__DIAGNOSTIC_BEFORE_RUN__", if diagnostics_enabled { "markStatus();" } else { "" })
-    .replace("__DIAGNOSTIC_AFTER_RUN__", if diagnostics_enabled { "markStatus();" } else { "" });
-    fs::write(out_dir.join("index.html"), html)?;
-    Ok(())
 }
 
 fn wait_for_server(port: u16) -> Result<()> {
@@ -872,23 +818,28 @@ mod tests {
         assert_eq!(playwright_feature_list(&all), "*");
     }
 
+    /// The fallback page with its placeholders filled in.
+    fn fallback_page(module_base: &str, title: &str, diagnostics: bool) -> Result<String> {
+        let module = format!("/{module_base}.js");
+        substitute_page(
+            FALLBACK_WEB_PAGE,
+            "the built-in fallback page",
+            &[
+                ("__RAYX_MODULE__", module.as_str()),
+                ("__RAYX_TITLE__", title),
+                (
+                    "__RAYX_DIAGNOSTICS__",
+                    if diagnostics { "true" } else { "false" },
+                ),
+            ],
+        )
+    }
+
     #[test]
-    fn wasm_host_uses_an_explicit_deployment_base_for_deep_links()
-    -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let root = std::env::temp_dir().join(format!(
-            "rayx-wasm-host-base-{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)?
-                .as_nanos()
-        ));
-        fs::create_dir_all(&root)?;
-
-        write_wasm_host(&root, "rayx_lab_app_web", "RayX Lab", false)?;
-        let html = fs::read_to_string(root.join("index.html"))?;
-
+    fn wasm_host_uses_an_explicit_deployment_base_for_deep_links() -> Result<()> {
+        let html = fallback_page("rayx_lab_app_web", "RayX Lab", false)?;
         assert!(html.contains(r#"<base href="/" />"#));
-
-        fs::remove_dir_all(root).ok();
+        assert!(html.contains("import init, { run } from '/rayx_lab_app_web.js';"));
         Ok(())
     }
 
@@ -1012,20 +963,8 @@ roots = [{ path = "assets/icons", mount = "icons" }]
 
     #[test]
     fn wasm_host_resolves_app_content_from_root_on_deep_links() -> Result<()> {
-        let root = std::env::temp_dir().join(format!(
-            "rayx-wasm-host-base-{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)?
-                .as_nanos()
-        ));
-        fs::create_dir_all(&root)?;
-
-        write_wasm_host(&root, "fixture", "Fixture", false)?;
-        let html = fs::read_to_string(root.join("index.html"))?;
-
-        assert!(html.contains(r#"<base href="/" />"#));
-
-        fs::remove_dir_all(root).ok();
+        let html = fallback_page("fixture", "Fixture", false)?;
+        assert_eq!(html.matches(r#"<base href="/" />"#).count(), 1);
         Ok(())
     }
 
@@ -1131,13 +1070,6 @@ roots = [{ path = "assets/icons", mount = "icons" }]
 
     #[test]
     fn all_features_selects_a_diagnostics_enabled_wasm_host() -> Result<()> {
-        let root = std::env::temp_dir().join(format!(
-            "rayx-wasm-all-features-diagnostics-{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)?
-                .as_nanos()
-        ));
-        fs::create_dir_all(&root)?;
         let requested = AppFeatureSelection {
             all_features: true,
             ..AppFeatureSelection::default()
@@ -1147,13 +1079,17 @@ roots = [{ path = "assets/icons", mount = "icons" }]
         assert_eq!(selected, requested);
         assert!(diagnostics_enabled(&selected));
 
-        write_wasm_host(&root, "fixture", "Fixture", diagnostics_enabled(&selected))?;
-        let html = fs::read_to_string(root.join("index.html"))?;
-        assert!(html.contains("__rayxHtmlIslandDiagnostics"));
-        assert!(html.contains("wasm-thread-status"));
-        assert!(html.contains("webgpu-status"));
-
-        fs::remove_dir_all(root).ok();
+        let value = if diagnostics_enabled(&selected) {
+            "true"
+        } else {
+            "false"
+        };
+        let html = substitute_page(
+            "<script>const diagnostics = __RAYX_DIAGNOSTICS__;</script>\n",
+            "a test page",
+            &[("__RAYX_DIAGNOSTICS__", value)],
+        )?;
+        assert_eq!(html, "<script>const diagnostics = true;</script>\n");
         Ok(())
     }
 
@@ -1294,41 +1230,47 @@ Connection: close
     }
 
     #[test]
-    fn html_island_diagnostics_bootstrap_includes_probe_contract() {
-        let script = html_island_diagnostics_bootstrap();
-        assert!(script.contains("__rayxHtmlIslandDiagnostics"));
-        assert!(script.contains("__rayxHtmlIslandEnabled"));
-        assert!(script.contains("htmlIslandSearch.get('rayx-html-island')"));
-        assert!(script.contains("available: false"));
-        assert!(script.contains("probes:"));
-        assert!(script.contains("canvasLayoutSubtree,"));
-        assert!(script.contains("gpuQueueCopyElementImageToTexture:"));
-        assert!(script.contains("layoutSubtree: probes.canvasLayoutSubtree !== null"));
-        assert!(script.contains(
-            "copyElementImageToTexture: probes.gpuQueueCopyElementImageToTexture !== null"
-        ));
-        assert!(script.contains("textureReallocationCount: 0"));
-        assert!(script.contains("path: 'unsupported'"));
+    fn adjacent_placeholders_are_each_replaced() -> Result<()> {
+        let values = [("__RAYX_TITLE__", "demo"), ("__RAYX_DIAGNOSTICS__", "true")];
+        assert_eq!(
+            substitute_page("__RAYX_TITLE____RAYX_DIAGNOSTICS__", "page", &values)?,
+            "demotrue"
+        );
+        assert_eq!(
+            substitute_page("__RAYX_TITLE__ABC__", "page", &values)?,
+            "demoABC__"
+        );
+        assert_eq!(
+            substitute_page("__RAYX_ alone", "page", &values)?,
+            "__RAYX_ alone"
+        );
+        let error = substitute_page("ok\n__RAYX_NOPE____RAYX_TITLE__", "page", &values)
+            .expect_err("unknown");
+        let text = format!("{error:#}");
+        assert!(
+            text.contains("__RAYX_NOPE__ ") && text.contains("line 2"),
+            "{text}"
+        );
+        Ok(())
     }
 
     #[test]
     fn generated_wasm_host_diagnostics_policy_omits_diagnostics_for_production() -> Result<()> {
-        let root = std::env::temp_dir().join("rayx-wasm-host-diagnostics-policy");
-        fs::create_dir_all(&root)?;
-
-        write_wasm_host(&root, "fixture", "Fixture", false)?;
-        let production = fs::read_to_string(root.join("index.html"))?;
+        // The fallback page is the same for both settings and carries no diagnostics code; an
+        // app page reads the setting from `__RAYX_DIAGNOSTICS__`.
+        let production = fallback_page("fixture", "Fixture", false)?;
+        assert_eq!(production, fallback_page("fixture", "Fixture", true)?);
         assert!(!production.contains("__rayx"));
         assert!(!production.contains("wasm-thread-status"));
         assert!(!production.contains("webgpu-status"));
-
-        write_wasm_host(&root, "fixture", "Fixture", true)?;
-        let diagnostics = fs::read_to_string(root.join("index.html"))?;
-        assert!(diagnostics.contains("__rayxHtmlIslandDiagnostics"));
-        assert!(diagnostics.contains("wasm-thread-status"));
-        assert!(diagnostics.contains("webgpu-status"));
-
-        fs::remove_dir_all(root).ok();
+        for (diagnostics, value) in [(false, "false"), (true, "true")] {
+            let page = substitute_page(
+                "__RAYX_DIAGNOSTICS__",
+                "a test page",
+                &[("__RAYX_DIAGNOSTICS__", value)],
+            )?;
+            assert_eq!(page, if diagnostics { "true" } else { "false" });
+        }
         Ok(())
     }
 }
