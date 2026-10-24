@@ -79,7 +79,7 @@ Create it as the repository owner:
 3. Repository permissions: **Contents** read and write, **Pull requests** read and write (Metadata
    read is added automatically).
 4. Set an expiry (at most one year) and note the date.
-5. In `rayx-ui/RayX.CLI` → Settings → Secrets and variables → Actions → New repository secret named
+5. In `rayx-ui/RayX.CLI.Old` → Settings → Secrets and variables → Actions → New repository secret named
    `RELEASE_PLZ_TOKEN`.
 
 Release pull requests, tags and the commits release-plz makes then appear as the token's owner.
@@ -110,9 +110,9 @@ read it. release-plz continues from the by-hand tag on its next run.
 ## Checking a release
 
 ```bash
-gh release view vX.Y.Z --repo rayx-ui/RayX.CLI
-gh release download vX.Y.Z --repo rayx-ui/RayX.CLI --pattern 'rayx-cli-aarch64-apple-darwin.tar.xz'
-gh attestation verify rayx-cli-aarch64-apple-darwin.tar.xz --repo rayx-ui/RayX.CLI
+gh release view vX.Y.Z --repo rayx-ui/RayX.CLI.Old
+gh release download vX.Y.Z --repo rayx-ui/RayX.CLI.Old --pattern 'rayx-cli-aarch64-apple-darwin.tar.xz'
+gh attestation verify rayx-cli-aarch64-apple-darwin.tar.xz --repo rayx-ui/RayX.CLI.Old
 ```
 
 Each archive has a `.sha256` file next to it, and `sha256.sum` lists all of them. The shell
