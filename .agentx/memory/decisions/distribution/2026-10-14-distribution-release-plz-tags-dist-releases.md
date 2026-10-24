@@ -2,16 +2,17 @@
 agentx:
   kind: decision
   scope: decisions/distribution
-  status: current
+  status: superseded
   created: 2026-10-14T17:00:00+02:00
-  updated: 2026-10-14T17:00:00+02:00
+  updated: 2026-10-24T14:30:00+02:00
   promoted_from: rayx-cli-releases
   topics:
     - release
     - versioning
     - release-plz
   supersedes: []
-  superseded_by: []
+  superseded_by:
+    - ../../../../../RayX.CLI/.agentx/memory/decisions/distribution/2026-10-24-distribution-release-plz-tags-dist-releases.md
 ---
 
 ## Decision: release-plz turns Conventional Commits into version tags; dist builds the release
